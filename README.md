@@ -15,8 +15,6 @@ A python tool based on ffmpeg that makes converting between different formats/co
   ```
   ./mpeg-convert.py
   ```
-> [!NOTE]
-> You do not need to use `python3 mpeg-convert.py` because of the shebang at the top
 
 If you would like to launch this script from anywhere, you can add it to the path (duh)
 
@@ -27,23 +25,27 @@ If you would like to launch this script from anywhere, you can add it to the pat
 
 ## Usage
 ```
+A media file converter using the ffmpeg engine. 
+
 Usage: mpeg-convert <filepath.in> <filepath.out>
+
+Options:
+	-d   --debug       Enable debug mode to see FFmpeg logs
 
 This tool is a simple wrapper for the ffmpeg engine to make the
 conversion between different video/audio formats a little easier for
 the everyday user. This program is not, however, a complete
 replacement for ffmpeg in any way. For that purpose, you should look
-look into other software such as Handbrake or DaVinci Resolve.
+look into other software such as Handbrake or DaVinci Resolve. 
 
 Additionally, this tool has been hacked together in a couple of
 days, meaning that some of the finer details has not been fleshed
 out yet -- expect some rough corners during use. This tool also has
-not been tested or designed for multiple video/audio streams.
+not been tested or designed for multiple video/audio streams. 
 
-Notes:
-    The default (and only) CRF value is 21. You can change it in
-    the script itself if you'd like.
+Custom encoders can be listed by `ffmpeg -codecs`
 
+Note:
     FFmpeg will automatically detect the file extensions/containers
     to convert to/from; you do not need to specify anything.
 ```
