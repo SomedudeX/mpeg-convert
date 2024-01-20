@@ -11,8 +11,18 @@ A python tool based on ffmpeg that makes converting between different formats/co
   cd MPEG-convert
   pip3 install -r requirements.txt
   ```
+* Launch the script
+  ```
+  ./mpeg-convert.py
+  ```
+  > [!NOTE] You do not need to use `python3 mpeg-convert.py` because of the shebang at the top
 
 If you would like to launch this script from anywhere, you can add it to the path (duh)
+
+## Troubleshooting
+
+* Do you have python installed?
+* Do you have ffmpeg installed?
 
 ## Usage
 ```
