@@ -1,7 +1,7 @@
 ## MPEG-Convert
 A python tool based on ffmpeg that makes converting between different formats/codecs a whole lot easier for the end-user
 
-This tool is a simple wrapper for the ffmpeg engine to make the conversion between different video/audio formats a little easier for the everyday user. This program is not, however, a complete replacement for ffmpeg in any way. For that purpose, you should look look into other software such as Handbrake or DaVinci Resolve. 
+This tool is a simple wrapper for the ffmpeg engine to make the conversion between different video/audio formats a little easier for the folks who doesn't want to memorize twenty options to use ffmpeg. This program is not, however, a complete replacement for ffmpeg in any way. For that purpose, you should look look into other software such as Handbrake or DaVinci Resolve. 
 
 Additionally, this tool has been hacked together in a couple of days, meaning that some of the finer details has not been fleshed out yet -- expect some rough corners during use. This tool also has not been tested or designed for multiple video/audio streams. 
 
