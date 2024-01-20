@@ -10,6 +10,8 @@ import os
 import sys
 import json
 
+from rich.prompt import IntPrompt
+
 try:
 	from ffmpeg import FFmpeg, FFmpegError, Progress
 
@@ -92,35 +94,36 @@ class MediaManager():
 		self.console.print()
 		self.console.print("[bold] -*- Audio options -*-")
 		self.console.print()
-		self.console.print(f"Audio codec presets: ")
+		self.console.print(f"Audio codec presets -")
 		self.console.print(f"[1] AAC")
 		self.console.print(f"[2] MP3 (default)")
 		self.console.print(f"[3] ALAC")
 		self.console.print(f"[4] FLAC")
-		_codec = Prompt.ask("Select a codec", choices = ["1", "2", "3", "4"], default = "2")
+		self.console.print(f"[5] Custom encoder")
+		_codec = Prompt.ask("Select a codec", choices = ["1", "2", "3", "4", "5"], default = "2")
+		_codec = self._parseCodecAudio(_codec)
 
 		self.console.print()
-		self.console.print(f"Audio samplerate presets: ")
+		self.console.print(f"Audio samplerate presets -")
 		self.console.print(f"[1] 16000hz")
 		self.console.print(f"[2] 44100hz")
 		self.console.print(f"[3] 48000hz (default)")
 		self.console.print(f"[4] 96000hz")
-		_samplerate = Prompt.ask("Select a sample rate", choices = ["1", "2", "3", "4"], default = "3")
+		self.console.print(f"[5] Custom samplerate")
+		_samplerate = Prompt.ask("Select a samplerate", choices = ["1", "2", "3", "4", "5"], default = "3")
+		_samplerate = self._parseSamplerate(_samplerate)
 		
 		self.console.print()
-		self.console.print(f"Audio bitrate presets: ")
+		self.console.print(f"Audio bitrate presets -")
 		self.console.print(f"[1] 96k")
 		self.console.print(f"[2] 128k")
 		self.console.print(f"[3] 192k (default)")
 		self.console.print(f"[4] 320k")
-		_bitrate = Prompt.ask("Select a birate", choices = ["1", "2", "3", "4"], default = "3")
-
-		self.console.print()
-		_channels = self.metadata["streams"][1]["channels"]
-
-		_codec = self._parseCodecAudio(_codec)
+		self.console.print(f"[5] Custom bitrate")
+		_bitrate = Prompt.ask("Select a birate", choices = ["1", "2", "3", "4", "5"], default = "3")
 		_bitrate = self._parseBitrate(_bitrate)
-		_samplerate = self._parseSamplerate(_samplerate)
+
+		_channels = self.metadata["streams"][1]["channels"]
 
 		_ret["codec:a"] = _codec
 		_ret["ar"] = _samplerate
@@ -142,43 +145,48 @@ class MediaManager():
 		self.console.print()
 		self.console.print("[bold]-*- Video options -*-")
 		self.console.print()
-		self.console.print(f"Video resolution presets: ")
+		self.console.print(f"Video resolution presets -")
 		self.console.print(f"[bold][[cyan]1[/cyan]][/bold] 1280x720", highlight = False)
 		self.console.print(f"[bold][[cyan]2[/cyan]][/bold] 1920x1080 (default)", highlight = False)
 		self.console.print(f"[bold][[cyan]3[/cyan]][/bold] 2560x1440", highlight = False)
 		self.console.print(f"[bold][[cyan]4[/cyan]][/bold] 3840x2160", highlight = False)
-		_resolution = Prompt.ask("Select a resolution", choices = ["1", "2", "3", "4"], default = "2")
+		self.console.print(f"[5] Custom resolution")
+		_resolution = Prompt.ask("Select a resolution", choices = ["1", "2", "3", "4", "5"], default = "2")
+		_resolution = self._parseResolution(_resolution)
 
 		self.console.print()
-		self.console.print(f"Video framerate presets: ")
+		self.console.print(f"Video framerate presets -")
 		self.console.print(f"[1] 24fps (default)")
 		self.console.print(f"[2] 30fps")
 		self.console.print(f"[3] 50fps")
 		self.console.print(f"[4] 60fps")
-		_framerate = Prompt.ask("Select a resolution", choices = ["1", "2", "3", "4"], default = "1")
-
-		self.console.print()
-		self.console.print(f"Video codec presets: ")
-		self.console.print(f"[bold][[cyan]1[/cyan]][/bold] H.264", highlight = False)
-		self.console.print(f"[bold][[cyan]2[/cyan]][/bold] H.265", highlight = False)
-		self.console.print(f"[3] AV1 (default)")
-		self.console.print(f"[4] VP9")
-		_codec = Prompt.ask("Select a codec", choices = ["1", "2", "3", "4"], default = "3")
-
-		self.console.print()
-		_doLossless = Confirm.ask("Enable lossless video")
-
+		self.console.print(f"[5] Custom framerate")
+		_framerate = Prompt.ask("Select a framerate", choices = ["1", "2", "3", "4", "5"], default = "1")
 		_framerate = self._parseFramerate(_framerate)
-		_resolution = self._parseResolution(_resolution)
+
+		self.console.print()
+		self.console.print(f"Video codec presets -")
+		self.console.print(f"[bold][[cyan]1[/cyan]][/bold] H.264", highlight = False)
+		self.console.print(f"[bold][[cyan]2[/cyan]][/bold] H.265 (default)", highlight = False)
+		self.console.print(f"[3] AV1")
+		self.console.print(f"[4] VP9")
+		self.console.print(f"[5] Custom codec")
+		_codec = Prompt.ask("Select a codec", choices = ["1", "2", "3", "4", "5"], default = "2")
 		_codec = self._parseCodecVideo(_codec)
+
+		self.console.print()
+		self.console.print(f"Video quality -")
+		_doLossless = Confirm.ask("Enable lossless video (CRF = 0)")
+
 
 		_ret["r"] = _framerate
 		_ret["s"] = _resolution
 		_ret["codec:v"] = _codec
-		_ret["crf"] = "21"   # CRF value
 
 		if _doLossless:
 			_ret["crf"] = "0"
+		else:
+			_ret["crf"] = IntPrompt.ask("Enter a CRF value (0-51)")
 
 		return _ret
 
@@ -209,26 +217,25 @@ class MediaManager():
 		return int(_ret)
 
 	@staticmethod
-	def _parseQuality(_quality: str) -> str:
-		if _quality == "1": return "baseline"
-		if _quality == "2": return "main"
-		if _quality == "3": return "high"
-		return "main"
-
-	@staticmethod
 	def _parseResolution(_resolution: str) -> str:
 		if _resolution == "1": return "1280x720"
 		if _resolution == "2": return "1920x1080"
 		if _resolution == "3": return "2560x1440"
 		if _resolution == "4": return "3840x2160"
+		if _resolution == "5": return Prompt.ask("Enter custom resolution (e.g. 2160x1440)")
 		return "1920x1080"
 
 	@staticmethod
 	def _parseCodecVideo(_codec: str) -> str:
-		if _codec == "1": return "libx264"
-		if _codec == "2": return "libx265"
+		if _codec == "1": 
+			if sys.platform == "darwin": return "h264_videotoolbox"
+			else: return "libx264"
+		if _codec == "2": 
+			if sys.platform == "darwin": return "hevc_videotoolbox"
+			else: return "libx265"
 		if _codec == "3": return "libsvtav1"
 		if _codec == "4": return "libvpx-vp9"
+		if _codec == "5": return Prompt.ask("Enter custom video encoder (e.g. libwebp)")
 		return "libx264"
 
 	@staticmethod
@@ -237,6 +244,7 @@ class MediaManager():
 		if _codec == "2": return "libmp3lame"
 		if _codec == "3": return "alac"
 		if _codec == "4": return "flac"
+		if _codec == "5": return Prompt.ask("Enter custom audio encoder (e.g. libtwolame)")
 		return "libx264"
 
 	@staticmethod
@@ -245,6 +253,7 @@ class MediaManager():
 		if _framerate == "2": return "30"
 		if _framerate == "3": return "50"
 		if _framerate == "4": return "60"
+		if _framerate == "5": return Prompt.ask("Enter custom framerate (e.g. 23.976)")
 		return "24"
 
 	@staticmethod
@@ -253,6 +262,7 @@ class MediaManager():
 		if _samplerate == "2": return "44100"
 		if _samplerate == "3": return "48000"
 		if _samplerate == "4": return "96000"
+		if _samplerate == "5": return Prompt.ask("Enter custom samplerate (e.g. 22050)")
 		return "48000"
 
 	@staticmethod
@@ -261,6 +271,7 @@ class MediaManager():
 		if _bitrate == "2": return "128k"
 		if _bitrate == "3": return "192k"
 		if _bitrate == "4": return "320k"
+		if _bitrate == "5": return Prompt.ask("Enter custom bitrate (e.g. 160)")
 		return "192k"
 
 
@@ -269,6 +280,9 @@ class Program():
 	A media file converter using the ffmpeg engine. 
 
 	Usage: mpeg-convert <filepath.in> <filepath.out>
+
+	Options:
+		-d   --debug       Enable debug mode to see FFmpeg logs
 
 	This tool is a simple wrapper for the ffmpeg engine to make the
 	conversion between different video/audio formats a little easier for
@@ -281,14 +295,14 @@ class Program():
 	out yet -- expect some rough corners during use. This tool also has
 	not been tested or designed for multiple video/audio streams. 
 
-	Notes: 
-		The default (and only) CRF value is 21.
+	Custom encoders can be listed by `ffmpeg -codecs`
 	"""
 
 	def __init__(self) -> None:
-		"""Initializes an instand of `Program`"""
+		"""Initializes an instance of `Program`"""
 		self.console = Console()
 		self.errorConsole = Console(stderr = True, style = "bold red")
+		self.debug = False
 
 		self.checkFFmpeg()
 
@@ -299,12 +313,8 @@ class Program():
 
 		_argc: int = len(_argv)
 
-		if _argc == 0:
-			self.console.print(self.__doc__)
-			raise SystemExit(0)
-
-		if _argc == 1:
-			self.console.print(self.__doc__)
+		if _argc == 0 or _argc == 1:
+			self.console.print(self.__doc__, highlight = False)
 			raise SystemExit(0)
 
 		if _argc == 2:
@@ -319,7 +329,26 @@ class Program():
 				self.output = _cwd + self.output
 			return
 
-		if _argc > 2:
+		if _argc == 3:
+			self.debug = self.checkDebug(_argc, _argv)[0]
+			if not self.debug: 
+				self.errorConsole.log(f"[Fatal] parseArgs() failed: 3 arguments were provided but none of them are -d or --debug")
+				raise SystemExit(1)
+
+			self.console.log(f"[yellow][Info] Debug mode enabled: will output all FFmpeg logs")
+			del _argv[self.checkDebug(_argc, _argv)[1]]
+			self.input = sys.argv[0]
+			self.output = sys.argv[1]
+			self.console.log(f"[Info] Raw command-line arguments: '{self.input}' and '{self.output}'")
+			_cwd = os.getcwd() + "/"
+
+			if self.input[0] != "/" and self.input[0] != "~":
+				self.input = _cwd + self.input
+			if self.output[0] != "/" and self.output[0] != "~":
+				self.output = _cwd + self.output
+			return
+
+		if _argc > 3:
 			_args = ""
 			for _arg in _argv:
 				_args = _args + _arg + ", "
@@ -327,6 +356,13 @@ class Program():
 			self.errorConsole.log(f"[Fatal] parseArgs() failed: too many arguments were provided to the program ({_argc} received):")
 			self.errorConsole.log(f" - Arguments: {_args}")
 			raise SystemExit(1)
+
+	@staticmethod
+	def checkDebug(_argc: int, _argv: list[str]) -> tuple:
+		for i in range(_argc):
+			if _argv[i] == "-d" or _argv[i] == "--debug":
+				return (True, i)
+		return (False, -1)
 
 	def checkFFmpeg(self):
 		"""Checks whether FFmpeg is installed and on the system path"""
@@ -343,7 +379,7 @@ class Program():
 	def logMetadata(self):
 		"""Prints the metadata of a media (MediaManager class) file"""
 		_metadata = self.media.metadata
-		self.console.log(f"[Info] Detected metadata: ")
+		self.console.log(f"[Info] Detected source info: ")
 		self.console.log(f"[bold]- Video (source stream 1)", highlight = False)
 		self.console.log(f"|    Video codec      : {_metadata['streams'][0]['codec_long_name']}", highlight = False)
 		self.console.log(f"|    Video color      : {_metadata['streams'][0]['color_space']}", highlight = False)
@@ -359,9 +395,8 @@ class Program():
 		self.console.log(f"|    Audio layout     : {_metadata['streams'][1]['channel_layout']}", highlight = False)
 		self.console.log(f"|    Audio bitrate    : {int(_metadata['streams'][1]['bit_rate']) // 1000}k", highlight = False)
 
-	def convert(self) -> None:
-		"""Starts the conversion of the media file"""
-		
+	def process(self) -> None:
+		"""Processes the input file by instantiating a MediaManager() object"""
 		self.media = MediaManager(self.input)
 		self.framerate: int  = self.media.getFramerate()
 		self.totalSecs: int  = self.media.getTotalSecs()
@@ -371,11 +406,14 @@ class Program():
 		if len(self.media.metadata['streams']) > 3:
 			self.console.log()
 			self.console.log(f"[red][Warning] Multiple video/audio streams detected")
-			self.console.log(f"- Mpeg-compress has not been tested with multiple video/audio streams")
+			self.console.log(f"- Mpeg-compress has not been tested/designed with multiple video/audio streams in mind")
 			self.console.log(f"- You are entering unknown territory if you proceed! ")
 			self.console.log(f"- This could also be a false detection")
 
 		self.media.askEncodeOptions()
+
+	def convert(self) -> None:
+		"""Starts the conversion of the media file"""
 
 		self.ffmpegInstance = (FFmpeg()
 			.option("y")
@@ -406,8 +444,9 @@ class Program():
 				self.console.log(f"[Info] Initiated FFmpeg task with the following command: {_args}")
 
 			@self.ffmpegInstance.on("stderr")
-			def ffmpegError(_errorMsg: str) -> None:
-				self.console.log(f"[Warning] Error from FFmpeg: {_errorMsg}")
+			def ffmpegOutput(_Msg: str) -> None:
+				if self.debug:
+					self.console.log(f"[FFmpeg] {_Msg}")
 
 			_task = _bar.add_task("[green]Transcoding file...", total = None)
 			self.ffmpegInstance.execute()
@@ -419,6 +458,7 @@ class Program():
 		self.console.log(f"[Info] Parsed command-line arguments: '{self.input}' and '{self.output}'")
 
 		try:
+			self.process()
 			self.convert()
 		except FFmpegError as _error:
 			_ffmpegArgs = ""
