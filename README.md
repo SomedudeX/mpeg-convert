@@ -15,7 +15,8 @@ A python tool based on ffmpeg that makes converting between different formats/co
   ```
   ./mpeg-convert.py
   ```
-  > [!NOTE] You do not need to use `python3 mpeg-convert.py` because of the shebang at the top
+> [!NOTE]
+> You do not need to use `python3 mpeg-convert.py` because of the shebang at the top
 
 If you would like to launch this script from anywhere, you can add it to the path (duh)
 
