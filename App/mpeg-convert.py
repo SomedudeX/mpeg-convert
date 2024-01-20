@@ -9,6 +9,7 @@
 import os
 import sys
 import json
+import argparse
 
 try:
 	from ffmpeg import FFmpeg, FFmpegError, Progress
@@ -20,9 +21,23 @@ try:
 	from rich import traceback
 
 except ModuleNotFoundError as e:
-	print(f" [Fatal] {str(e).capitalize()}")
+	_errormsg = str(e)
+	print(f" [Fatal] {_errormsg.capitalize()}")
 	print(f" - Make sure you install all required modules by using `pip` or `pip3`")
+	print(f" - Exiting...")
 	raise SystemExit(-1)
+
+
+DEFAULT_OPTIONS = {
+	'r': '24',
+	's': '1920x1080',
+	'codec:v': 'hevc_videotoolbox', 
+	'crf': '21', 
+	'codec:a': 'libmp3lame', 
+	'ar': '48000', 
+	'b:a': '192k', 
+	'ac': '2'
+}
 
 
 class MediaManager():
@@ -33,7 +48,7 @@ class MediaManager():
 		Args:
 			inputPath - the path of the media file that the object will represent
 		"""
-		self.console = Console(highlight = True)
+		self.console = Console(highlight = False)
 
 		self.inputPath = inputPath
 		self.getMetadata()
@@ -54,12 +69,18 @@ class MediaManager():
 		self.metadata: dict = json.loads(_ffprobe.execute())
 		return
 
-	def askEncodeOptions(self) -> None:
+	def askEncodeOptions(self, _default: bool = False) -> None:
 		"""Asks the user for encoding options
-
+		
+		Args:
+			_default - whether to use the default options
 		Returns: 
-			A dictionary containing the arguments to pass to FFmpeg
+			None - instead, fetches options from the user and stores it inside the class attribute `self.options`
 		"""
+		if _default:
+			self.options = DEFAULT_OPTIONS
+			return
+
 		self.console.print()
 		self.console.print("[bold] -*- Encoding options -*-")
 		self.console.print()
@@ -275,85 +296,52 @@ class MediaManager():
 
 class Program():
 	"""
-	A media file converter using the ffmpeg engine. 
-
-	Usage: mpeg-convert <filepath.in> <filepath.out>
-
-	Options:
-		-d   --debug       Enable debug mode to see FFmpeg logs
-
-	This tool is a simple wrapper for the ffmpeg engine to make the
-	conversion between different video/audio formats a little easier for
-	the everyday user. This program is not, however, a complete
-	replacement for ffmpeg in any way. For that purpose, you should look
-	look into other software such as Handbrake or DaVinci Resolve. 
-
-	Additionally, this tool has been hacked together in a couple of
-	days, meaning that some of the finer details has not been fleshed
-	out yet -- expect some rough corners during use. This tool also has
-	not been tested or designed for multiple video/audio streams. 
-
-	Custom encoders can be listed by `ffmpeg -codecs`
+	a media file converter using the ffmpeg engine. 
 	"""
 
 	def __init__(self) -> None:
 		"""Initializes an instance of `Program`"""
-		self.console = Console()
+		self.console = Console(highlight = False)
 		self.errorConsole = Console(stderr = True, style = "bold red")
 		self.debug = False
+		self.default = False
+
+		try: 
+			self.parseArgs()
+		except Exception as e: 
+			_errormsg = str(e)
+			self.errorConsole.log(f"[Fatal] parseArgs() failed: {_errormsg}")
+			self.errorConsole
 
 		self.checkFFmpeg()
+		if self.debug: self.console.log(f"[yellow][Warning] Using debug mode")
+		if self.default: self.console.log(f"[yellow][Warning] Using all default options")
 
 	def parseArgs(self) -> None:
 		"""Parses the command-line arguments from the user"""
-		_argv: list = sys.argv
-		del _argv[0]
+		_parser = argparse.ArgumentParser(description = self.__doc__,
+										  usage = "mpeg-convert [options] <file.in> <file.out>",
+										  argument_default = argparse.SUPPRESS)
+		_parser.add_argument("input", type = str, 
+							  help = "the input file to convert from (ffmpeg will auto-detect container format)")
+		_parser.add_argument("output", type = str, 
+							  help = "the output file to convert to (ffmpeg will auto-detect container format)")
+		_parser.add_argument("-d", "--debug", action = "store_true", default = False,
+							  help = "outputs all FFmpeg logs to the console")
+		_parser.add_argument("--default", action = "store_true", default = False,
+							  help = "use default settings for encoding")
+		_args = _parser.parse_args()
 
-		_argc: int = len(_argv)
+		self.input = _args.input
+		self.output = _args.output
+		self.debug = _args.debug
+		self.default = _args.default
 
-		if _argc == 0 or _argc == 1:
-			self.console.print(self.__doc__, highlight = False)
-			raise SystemExit(0)
-
-		if _argc == 2:
-			self.input = sys.argv[0]
-			self.output = sys.argv[1]
-			self.console.log(f"[Info] Raw command-line arguments: '{self.input}' and '{self.output}'")
-			_cwd = os.getcwd() + "/"
-
-			if self.input[0] != "/" and self.input[0] != "~":
-				self.input = _cwd + self.input
-			if self.output[0] != "/" and self.output[0] != "~":
-				self.output = _cwd + self.output
-			return
-
-		if _argc == 3:
-			self.debug = self.checkDebug(_argc, _argv)[0]
-			if not self.debug: 
-				self.errorConsole.log(f"[Fatal] parseArgs() failed: 3 arguments were provided but none of them are -d or --debug")
-				raise SystemExit(1)
-
-			self.console.log(f"[yellow][Info] Debug mode enabled: will output all FFmpeg logs")
-			del _argv[self.checkDebug(_argc, _argv)[1]]
-			self.input = sys.argv[0]
-			self.output = sys.argv[1]
-			self.console.log(f"[Info] Raw command-line arguments: '{self.input}' and '{self.output}'")
-			_cwd = os.getcwd() + "/"
-
-			if self.input[0] != "/" and self.input[0] != "~":
-				self.input = _cwd + self.input
-			if self.output[0] != "/" and self.output[0] != "~":
-				self.output = _cwd + self.output
-			return
-
-		if _argc > 3:
-			_args = ""
-			for _arg in _argv:
-				_args = _args + _arg + ", "
-			_args = _args[:-2]
-			self.errorConsole.log(f"[Fatal] parseArgs() failed: too many arguments were provided to the program ({_argc} received):")
-			self.errorConsole.log(f" - Arguments: {_args}")
-			raise SystemExit(1)
+		_cwd = os.getcwd()
+		if self.input[0] != "/" and self.input[0] != "~":
+				self.input = _cwd + "/" + self.input
+		if self.output[0] != "/" and self.output[0] != "~":
+			self.output = _cwd + "/" + self.output
 
 	@staticmethod
 	def checkDebug(_argc: int, _argv: list[str]) -> tuple:
@@ -408,7 +396,7 @@ class Program():
 			self.console.log(f"- You are entering unknown territory if you proceed! ")
 			self.console.log(f"- This could also be a false detection")
 
-		self.media.askEncodeOptions()
+		self.media.askEncodeOptions(self.default)
 
 	def convert(self) -> None:
 		"""Starts the conversion of the media file"""
@@ -461,7 +449,7 @@ class Program():
 		except FFmpegError as _error:
 			_ffmpegArgs = ""
 			for _arg in _error.arguments:
-				_ffmpegArgs = _arg + " "
+				_ffmpegArgs = _ffmpegArgs + _arg + " "
 
 			self.errorConsole.log(f"[Fatal] An FFmpeg exception has occured!")
 			self.errorConsole.log(f"[bold][red]- Error message from FFmpeg: [/bold][/red][white][not bold]{_error.message.lower()}", highlight = False)
@@ -470,6 +458,7 @@ class Program():
 			raise SystemExit(1)
 
 		self.console.log(f"[green][Info] Succesfully executed mpeg-convert")
+		self.console.log(f"[Info] Safely exiting mpeg-convert...")
 		return
 
 
