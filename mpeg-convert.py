@@ -10,14 +10,12 @@ import os
 import sys
 import json
 
-from rich.prompt import IntPrompt
-
 try:
 	from ffmpeg import FFmpeg, FFmpegError, Progress
 
-	from rich.progress import Progress as ProgressBar, TaskProgressColumn
-	from rich.progress import TextColumn, BarColumn
-	from rich.prompt import Confirm, Prompt
+	from rich.progress import TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn
+	from rich.progress import Progress as ProgressBar
+	from rich.prompt import Confirm, Prompt, IntPrompt
 	from rich.console import Console
 	from rich import traceback
 
@@ -429,7 +427,7 @@ class Program():
 			TextColumn("[progress.description]{task.description}"),
 			BarColumn(),
 			TaskProgressColumn(text_format = "[progress.percentage]{task.percentage:>0.1f}% ({task.completed}/{task.total} frames)"),
-			transient = True, 
+			TimeRemainingColumn(elapsed_when_finished = True),
 			console = self.console
 		) as _bar:
 
