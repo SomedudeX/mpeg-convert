@@ -13,7 +13,7 @@ A python tool based on ffmpeg that makes converting between different formats/co
   ```
 * Launch the script
   ```
-  ./mpeg-convert.py
+  ./App/mpeg-convert.py
   ```
 
 If you would like to launch this script from anywhere, you can add it to the path (duh)
