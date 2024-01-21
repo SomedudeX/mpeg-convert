@@ -32,33 +32,45 @@ except ModuleNotFoundError as e:
     raise SystemExit(-1)
 
 
-DEFAULT_OPTIONS = {
-    'r': '24',
-    's': '1920x1080',
-    'codec:v': 'libx264', 
-    'crf': '21', 
-    'codec:a': 'libmp3lame', 
-    'ar': '48000', 
-    'b:a': '320k', 
-    'ac': '2'
-}
+if sys.platform == "darwin":
+    DEFAULT_OPTIONS = {
+        'r': '24',
+        's': '1920x1080',
+        'codec:v': 'h264_videotoolbox', 
+        'crf': '21', 
+        'codec:a': 'libmp3lame', 
+        'ar': '48000', 
+        'b:a': '320k', 
+        'ac': '2'
+    }
+else:
+    DEFAULT_OPTIONS = {
+        'r': '24',
+        's': '1920x1080',
+        'codec:v': 'libx264', 
+        'crf': '21', 
+        'codec:a': 'libmp3lame', 
+        'ar': '48000', 
+        'b:a': '320k', 
+        'ac': '2'
+    }
 
 
 class MediaManager():
 
-    def __init__(self, inputPath: str) -> None:
+    def __init__(self, inputPath: str, debug = False) -> None:
         """Initializes an instane of `MediaManager`
 
         Args:
             inputPath - the path of the media file that the object 
             will represent
         """
-        self.console = Console(highlight = True)
+        self.console = Console(highlight = False)
 
         self.inputPath = inputPath
-        self.getMetadata()
+        self.getMetadata(debug)
 
-    def getMetadata(self) -> None:
+    def getMetadata(self, _debug = False) -> None:
         """Gets the metadata of the media file that the object is
            currently representing
 
@@ -72,6 +84,11 @@ class MediaManager():
                 print_format = 'json',
                 show_streams = None
         )
+
+        @_ffprobe.on("stderr")
+        def ffmpegOutput(_Msg: str) -> None:
+            if _debug:
+                self.console.log(f"[FFprobe] {_Msg}")
 
         self.metadata: dict = json.loads(_ffprobe.execute())
         return
@@ -384,7 +401,7 @@ class Program():
             self.parseArgs()
         except Exception as e: 
             _errormsg = str(e)
-            self.errorConsole.log(f"[Fatal] parseArgs() failed: {_errormsg}")
+            self.errorConsole.log(f"[Fatal] Program().parseArgs() failed: {_errormsg}")
             self.errorConsole
 
         self.checkFFmpeg()
@@ -457,7 +474,7 @@ class Program():
             _ffmpeg.execute()
         except FileNotFoundError:
             self.errorConsole.log(
-                "[Fatal] checkFFmpeg() failed: could not find FFmpeg in path\n\
+                "[Fatal] Program().checkFFmpeg() failed: could not find FFmpeg in path\n\
                 - Make sure FFmpeg is installed and is in path before launching this script"
             )
 
@@ -469,29 +486,34 @@ class Program():
         _videoData = _metadata['streams'][0]
         _audioData = _metadata['streams'][1]
         self.console.log(f"[Info] Detected source info: ")
-        self.console.log(f"[bold]- Video (source stream 1)")
+        self.console.log(f"[bold]- Video (source stream 0)")
         self.console.log(f"|    Video codec      : {_videoData['codec_long_name']}")
         self.console.log(f"|    Video color      : {_videoData['color_space']}")
         self.console.log(f"|    Video resolution : {_videoData['width']}x{_videoData['height']}")
-        self.console.log(f"|    Video framerate  : {self.framerate}")
+        self.console.log(f"|    Video framerate  : {self.framerate} fps")
         self.console.log(f"|    Video length     : {self.totalSecs} seconds")
-        self.console.log(f"|    Total frames     : {self.totalFrame}")
-        self.console.log(f"[bold]- Audio (source stream 2)")
+        self.console.log(f"|    Total frames     : {self.totalFrame} frames")
+        self.console.log(f"[bold]- Audio (source stream 1)")
         self.console.log(f"|    Audio codec      : {_audioData['codec_long_name']}")
         self.console.log(f"|    Audio profile    : {_audioData['profile']}")
-        self.console.log(f"|    Audio samplerate : {_audioData['sample_rate']}")
+        self.console.log(f"|    Audio samplerate : {_audioData['sample_rate']} Hz")
         self.console.log(f"|    Audio channels   : {_audioData['channels']}")
-        self.console.log(f"|    Audio layout     : {_audioData['channel_layout']}")
-        self.console.log(f"|    Audio bitrate    : {int(_audioData['bit_rate']) // 1000}k")
+        self.console.log(f"|    Audio layout     : {_audioData['channel_layout'].capitalize()}")
+        self.console.log(f"|    Audio bitrate    : {int(_audioData['bit_rate']) // 1000} kb/s")
 
     def process(self) -> None:
         """Processes the input file by instantiating a MediaManager() object"""
-        self.media = MediaManager(self.input)
+        self.media = MediaManager(self.input, self.debug)
         self.framerate: int  = self.media.getFramerate()
         self.totalSecs: int  = self.media.getTotalSecs()
         self.totalFrame: int = self.totalSecs * self.framerate
+        try:
+            self.logMetadata()
+        except Exception as e:
+            _errormsg = str(e)
+            self.errorConsole.log(f"[Fatal] Program().logMetadata() failed: {_errormsg}")
+            self.errorConsole
 
-        self.logMetadata()
         if len(self.media.metadata['streams']) > 3:
             self.console.log()
             self.console.log(f"[red][Warning] Multiple video/audio streams detected")
