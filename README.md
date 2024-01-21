@@ -35,6 +35,7 @@ A media file converter using the ffmpeg engine.
 Usage: mpeg-convert [options] <filepath.in> <filepath.out>
 
 Options:
+	-h   --help        Shows the help page
 	-d   --debug       Enable debug mode to see FFmpeg logs
 	     --default	   Use default settings
 
