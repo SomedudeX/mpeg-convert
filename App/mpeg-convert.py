@@ -57,9 +57,12 @@ else:
 
 
 class MediaManager():
+    """The MediaManager() class represents a media file, its metadata, and the user's 
+    options on its encoding options
+    """
 
     def __init__(self, inputPath: str, debug = False) -> None:
-        """Initializes an instane of `MediaManager`
+        """Initializes an instance of `MediaManager`
 
         Args:
             inputPath - the path of the media file that the object 
