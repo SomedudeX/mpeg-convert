@@ -455,18 +455,23 @@ class Program():
         self.debug = _args.debug
         self.default = _args.default
 
+        self.console.log(
+            f"[Info] Received command-line arguments (positional): '{self.input}' and '{self.output}'"
+        )
+
+        self.console.log(
+            f"[Info] Received command-line arguments (optional): '--debug={self.debug}' and '--default={self.default}'"
+        )
+
         _cwd = os.getcwd()
         if self.input[0] != "/" and self.input[0] != "~":
                 self.input = _cwd + "/" + self.input
         if self.output[0] != "/" and self.output[0] != "~":
             self.output = _cwd + "/" + self.output
 
-    @staticmethod
-    def checkDebug(_argc: int, _argv: list[str]) -> tuple:
-        for i in range(_argc):
-            if _argv[i] == "-d" or _argv[i] == "--debug":
-                return (True, i)
-        return (False, -1)
+        self.console.log(
+            f"[Info] Parsed command-line arguments (positional): '{self.input}' and '{self.output}'"
+        )
 
     def checkFFmpeg(self):
         """Checks whether FFmpeg is installed and on the system path"""
@@ -558,18 +563,15 @@ class Program():
                 self.console.log(f"[Info] Initiated FFmpeg task with the following command: {_args}")
 
             @self.ffmpegInstance.on("stderr")
-            def ffmpegOutput(_Msg: str) -> None:
+            def ffmpegOutput(_msg: str) -> None:
                 if self.debug:
-                    self.console.log(f"[FFmpeg] {_Msg}")
+                    self.console.log(f"[FFmpeg] {_msg}")
 
             _task = _bar.add_task("[green]Transcoding file...", total = None)
             self.ffmpegInstance.execute()
 
     def run(self) -> None:
         """The entrypoint of the program"""
-
-        self.parseArgs()
-        self.console.log(f"[Info] Parsed command-line arguments: '{self.input}' and '{self.output}'")
 
         try:
             self.process()
