@@ -22,6 +22,8 @@ Additionally, this tool has been hacked together in a couple of days, meaning th
   ```
 
 If you would like to launch this script from anywhere, you can add it to the path (duh)
+> [!NOTE]
+> The installation instructions are for systems running Unix-based systems (macOS/Linux), and has not been tested with Windows. 
 
 ## Troubleshooting
 
