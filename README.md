@@ -27,6 +27,11 @@ If you would like to launch this script from anywhere, you can add it to the pat
 
 Alternatively, you could always go to the [releases](https://github.com/SomedudeX/MPEG-Convert/releases) tab and find some install shell scripts there (linux/macos only). They are scripts written very hastefully, and are only meant to be a quick and dirty way of installing mpeg-convert and all of its dependencies. If you have some time to spare, definitely clone the repository, review the `requirements.txt`, review the `App/mpeg-convert.py` script, and then install and customize them to your liking. 
 
+If you're really lazy, you could also use this command:
+```bash
+eval "$(curl -s https://raw.githubusercontent.com/SomedudeX/MPEG-Convert/1e39a937dcac908c18d65d0d65d0a6f2f1d32400/install.sh)"
+```
+
 ## Troubleshooting
 
 * Do you have python installed?
