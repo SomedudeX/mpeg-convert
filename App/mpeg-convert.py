@@ -14,13 +14,20 @@
 #     file will always terminate in `return` regardless of the return
 #     type. 
 #
+#     In addition, python's native type hinting is used whenever possible
+#     in order to catch issues and minimize problems with static analyzers
+#
 # This file uses 4 spaces for indentation. 
 
 
-import os
 import sys
 import json
 import argparse
+
+from os import path
+from os import _exit
+from os import getcwd
+from time import time
 
 try:
     from ffmpeg import FFmpeg, FFmpegError, Progress
@@ -43,11 +50,11 @@ except ModuleNotFoundError as e:
 if sys.platform == "darwin":
     DEFAULT_OPTIONS = {
         'r': '24',
-        's': '1920x1080',
-        'codec:v': 'h264_videotoolbox', 
+        's': '1920x1080',                   # On macOS, libx264 provides terrible performance, so
+        'codec:v': 'h264_videotoolbox',     # 'h264_videotoolbox', apple's own video encoder, is used.
         'crf': '21', 
         'codec:a': 'libmp3lame', 
-        'ar': '48000', 
+        'ar': '44100', 
         'b:a': '320k', 
         'ac': '2'
     }
@@ -58,38 +65,53 @@ else:
         'codec:v': 'libx264', 
         'crf': '21', 
         'codec:a': 'libmp3lame', 
-        'ar': '48000', 
+        'ar': '44100', 
         'b:a': '320k', 
         'ac': '2'
     }
 
 
 class MetadataLogger():
-    """The MetadataLogger() class's purpose is to log metadata (duh)"""
+    """The MetadataLogger() class only has static methods and its only 
+    purpose is to log metadata. The class is a `static class`, if you're 
+    coming from C#
+    """
     
     @staticmethod
     def log_metadata(_metadata: dict) -> None:
         """Prints the contents of a metadata dictionary from ffprobe
         
-        Returns:
-            None; the function outputs the information of the different
-            streams detected onto the console. 
+        + Args -
+            Dictionary: representing the however many streams of data from
+            ffprobe
+            
+        + Returns - 
+            None: the function outputs the information of the different streams
+            detected onto the console. 
         """
         _metadata = _metadata["streams"]
         Console().log(f"[Info] Retrieved source info: ", highlight = False)
+        
         for _stream in _metadata:
             if _stream["codec_type"] == "video":
-                MetadataLogger._log_video_metadata(_stream)
+                MetadataLogger.log_video_metadata(_stream)
             elif _stream["codec_type"] == "audio":
-                MetadataLogger._log_audio_metadata(_stream)
+                MetadataLogger.log_audio_metadata(_stream)
             else:
                 Console().log(f"[bold]- Auxiliary (source stream {_stream["codec_type"]})")
+                
         Console().log(f"[Info] End source info ", highlight = False)
         return
     
     @staticmethod
-    def _log_video_metadata(_video_stream: dict) -> None:
-        # Disregard this mess and be glad you didn't have to debug this
+    def log_video_metadata(_video_stream: dict) -> None:
+        """Logs the video metadata of a stream onto the console
+        
+        + Args -
+            Dictionary: representing a video stream provided by ffprobe
+        """
+        
+        # The notorious 'one liners', except 14 times
         try: _idx: str = f"{_video_stream['index']}"
         except: _idx: str = f"[yellow]-"
         try: _col: str = f"{_video_stream['color_space']}"
@@ -98,7 +120,7 @@ class MetadataLogger():
         except: _fmt: str = f"[yellow]-"
         try: _res: str = f"{_video_stream['width']}x{_video_stream['height']}"
         except: _res: str = f"[yellow]-"
-        try: _fps: str = f"{MetadataLogger._parse_framerate(_video_stream['avg_frame_rate'])}"
+        try: _fps: str = f"{MetadataLogger._get_framerate(_video_stream['avg_frame_rate'])}"
         except: _fps: str = f"[yellow]-"
         try: _dur: str = f"{round(float(_video_stream['duration']), 2)}"
         except: _dur: str = f"[yellow]-"
@@ -115,8 +137,14 @@ class MetadataLogger():
         return
         
     @staticmethod
-    def _log_audio_metadata(_audio_stream: dict) -> None:
-        # Disregard this mess and be glad you didn't have to debug this
+    def log_audio_metadata(_audio_stream: dict) -> None:
+        """Logs the audio metadata of a stream
+        
+        + Args -
+            Dictionary: representing a audio stream provided by ffprobe
+        """
+        
+        # The notorious 'one liners', except 14 times
         try: _idx: str = f"{_audio_stream['index']}"
         except: _idx: str = f"[yellow]-"
         try: _fmt: str = f"{_audio_stream['codec_long_name']}"
@@ -142,10 +170,10 @@ class MetadataLogger():
         return
     
     @staticmethod
-    def _parse_framerate(_fps: str) -> str:
-        _numerator = ""
-        for _ in range(len(_fps)):
-            if _fps[0] != "/":
+    def _get_framerate(_fps: str) -> str:     # Static overload for MetadataManager::get_framerate()
+        _numerator = ""                       # It is a member of MetadataLogger because python does
+        for _ in range(len(_fps)):            # not support function overloading. See get_framerate()
+            if _fps[0] != "/":                # method from class MetadataManager for docs
                 _numerator += _fps[0]
                 _fps = _fps[1:]
                 continue
@@ -157,83 +185,66 @@ class MetadataLogger():
         _numerator = float(_numerator)
         _denominator = float(_denominator)
         return str(round(_numerator / _denominator, 2))
+        
 
-
-class MediaManager():
-    """The MediaManager() class represents a media file, its metadata, and the user's 
-    options on its encoding options
-    """
-
+class OptionsHandler():
+    """The OptionsHandler() class asks the user questions on how to transcode the file"""
+    
     def __init__(
-        self, 
-        input_path: str, 
-        debug: bool = False
+        self,
+        _metadata: dict,
+        _audio_stream: int,
+        _video_stream: int
     ) -> None:
-        """Initializes an instance of `MediaManager`
-
-        Args:
-            inputPath - the path of the media file that the object 
-            will represent
+        """Initializes an instance of OptionsHandler()
+        
+        + Notes - 
+            The _metadata is used only for obtaining information regarding
+            the audio channels. 
+        
+        + Args - 
+            _metadata: a dictionary representing the metadata from ffprobe
+            _audio_stream: the first audio stream
+            _video_stream: the first video stream
         """
         self.console = Console(highlight = False)
-        self.error_console = Console(stderr = True, style = "bold red")
-
-        self.input_path = input_path
-        self.get_metadata(debug)
+        self.error_console = Console(stderr = True, style = "red")
         
-        return
-
-    def get_metadata(
-        self, 
-        _debug: bool = False
-    ) -> None:
-        """Gets the metadata of the media file that the object is
-        currently representing. Also loads the audio/video streams
-
-        Returns:
-            None - instead, fetches the metadata into the class attribute 
-            `self.metadata`
-        """
-        self.console.log("[Info] Probing file properties and metadata with ffprobe...")
-        _ffprobe = FFmpeg(executable = "ffprobe").input(
-                self.input_path,
-                print_format = 'json',
-                show_streams = None
-        )
-
-        @_ffprobe.on("stderr")
-        def ffmpeg_out(_Msg: str) -> None:
-            if _debug:
-                self.console.log(f"[FFprobe] {_Msg}")
-
-        self.metadata: dict = json.loads(_ffprobe.execute())
+        self.options = {}
+        self.metadata = _metadata
+        self.audio_stream = _audio_stream
+        self.video_stream = _video_stream
         
-        self.audio_stream = self.get_audio_stream()
-        self.video_stream = self.get_video_stream()
-        return
-
     def ask_encode_options(
         self, 
         _default: bool = False
-    ) -> None:
+    ) -> dict:
         """Asks the user for encoding options
         
-        Note: Tries to conform to the user's request as much as possible, 
+        + Notes -
+            Tries to conform to the user's request as much as possible, 
             however in the event that an audio/video stream cannot be 
             discovered, the ask...() function automatically aborts. 
             
             This may lead to unexpected issues. 
-        
-        Args:
-            _default - whether to use the default options
             
-        Returns: 
-            None - instead, fetches options from the user and stores it inside
-            the class attribute `self.options`. 
+            Additionally, the custom options are an experimental option, 
+            meaning that they are not tested well and may lead to issues. 
+        
+        + Args -
+            _default: whether to use the default options
+            
+        + Returns -
+            Dictionary: representing the commands that matches the user's 
+            request. The keys of the dictionary corresponds to the option,
+            and the values of the dictionary corresponds to the value in 
+            ffmpeg. The options are stripped of the dash (-) in front
+            
+            e.g. { 'c:a': 'libmp3lame' } corresponds to '-c:a libmp3lame' 
         """
         if _default:
             self.options = DEFAULT_OPTIONS
-            return
+            return self.options
 
         self.console.print()
         self.console.print("[bold] -*- Encoding options -*-")
@@ -259,34 +270,55 @@ class MediaManager():
             self.options = self.ask_audio_options() | self.ask_video_options()
             
         self.console.print()
-        _metadata_preserve = Prompt.ask(
-            "Enable file metadata preserving",
+        self.console.print("[bold] -*- Miscellaneous options -*-")
+        self.console.print()
+        _metadata_strip = Prompt.ask(
+            "Enable file metadata stripping",
             choices = ["y", "n"],
             default = "y"
         )
+            
+        self.console.print("Custom options to ffmpeg ('-option value -option2 value...')")
+        _additional_commands = Prompt.ask(
+            "Use empty field to skip: "
+        )
         
-        if _metadata_preserve:
-            self.options["movflags"] = "use_metadata_tags"
+        if _metadata_strip:
+            self.options["map_metadata"] = "-1"
+        else:
+            self.options["map_metadata"] = "0"
+            
+        _additional_commands = self._parse_commands(_additional_commands)
+        self.options = self.options | _additional_commands
 
         self.console.print()
         self.console.log(f"[Log] Finished asking encoding options")
-        return
+        
+        return self.options
 
     def ask_audio_options(self) -> dict:
         """Asks the user for audio encoding options
-
-        Returns: 
-            A dictionary containing the arguments to pass to FFmpeg. If no 
-            audio streams are discovered, returns an empty dictionary
+        
+        + Notes - 
+            If no audio streams are discovered, asks the user if
+            they would like to proceed. 
+            
+        + Returns -
+            Dictionary: containing the arguments to pass to FFmpeg. 
         """
 
+        _ret: dict = {}
+        
         if self.audio_stream == -1:
             self.error_console.log("[Error] No audio stream detected in metadata! ")
             self.error_console.log("- This may lead to unexpected issues")
-            self.error_console.log("- Skipping audio encoding...")
-            return {}
+            _continue = Confirm.ask("- Would you like to continue? ")
+            
+            if _continue:
+                pass
+            else:
+                return _ret
         
-        _ret: dict = {}
         self.console.print()
         self.console.print("[bold] -*- Audio options -*-")
         self.console.print()
@@ -334,7 +366,10 @@ class MediaManager():
 
         _bitrate = self._parse_bitrate(_bitrate)
         
-        _channels: int = self.metadata["streams"][self.audio_stream]["channels"]
+        # A try-catch statement is used because of the possibility
+        # that an audio stream might not be present. 
+        try: _channels: int = self.metadata["streams"][self.audio_stream]["channels"]
+        except: _channels: int = 2
         
         _ret["codec:a"] = _codec
         _ret["ar"] = _samplerate
@@ -345,18 +380,26 @@ class MediaManager():
 
     def ask_video_options(self) -> dict:
         """Asks the user for video encoding options
-
-        Returns: 
-            A dictionary containing the arguments to pass to FFmpeg
+        
+        + Notes - 
+            If no video streams are discovered, asks the user if
+            they would like to proceed. 
+            
+        + Returns -
+            Dictionary: containing the arguments to pass to FFmpeg. 
         """
+        
+        _ret: dict = {}
         
         if self.video_stream == -1:
             self.error_console.log("[Error] No video stream detected in metadata! ")
             self.error_console.log("- This may lead to unexpected issues")
-            self.error_console.log("- Skipping video encoding...")
-            return {}
+            _continue = Confirm.ask("- Would you like to continue? ")
+            if _continue:
+                pass
+            else:
+                return _ret
             
-        _ret: dict = {}
         self.console.print()
         self.console.print("[bold]-*- Video options -*-")
 
@@ -407,7 +450,7 @@ class MediaManager():
 
         self.console.print()
         self.console.print(f"Video quality -")
-        _doLossless = Confirm.ask("Enable lossless video (CRF = 0)")
+        _doLossless = Confirm.ask("Enable lossless video (CRF = 0)", default = False)
 
 
         _ret["r"] = _framerate
@@ -420,14 +463,205 @@ class MediaManager():
             _ret["crf"] = IntPrompt.ask("Enter a CRF value (0-51)")
 
         return _ret
+    
+    @staticmethod
+    def _parse_resolution(_resolution: str) -> str:
+        # Used internally to parse user's request on resolution
+        if _resolution == "1": 
+            return "1280x720"
+        if _resolution == "2": 
+            return "1920x1080"
+        if _resolution == "3": 
+            return "2560x1440"
+        if _resolution == "4": 
+            return "3840x2160"
+        if _resolution == "5": 
+            return Prompt.ask("Enter custom resolution (e.g. 2160x1440)")
+        return "1920x1080"
+
+    @staticmethod
+    def _parse_codec_video(_codec: str) -> str:
+        # Used internally to parse user's request on codec
+        if _codec == "1": 
+            if sys.platform == "darwin": return "h264_videotoolbox"
+            else: return "libx264"
+        if _codec == "2": 
+            if sys.platform == "darwin": return "hevc_videotoolbox"
+            else: return "libx265"
+        if _codec == "3": 
+            return "libsvtav1"
+        if _codec == "4": 
+            return "libvpx-vp9"
+        if _codec == "5": 
+            return Prompt.ask("Enter custom video encoder (e.g. libwebp)")
+        return "libx264"
+
+    @staticmethod
+    def _parse_codec_audio(_codec: str) -> str:
+        # Used internally to parse user's request on codec
+        if _codec == "1": 
+            return "aac"
+        if _codec == "2": 
+            return "libmp3lame"
+        if _codec == "3": 
+            return "alac"
+        if _codec == "4": 
+            return "flac"
+        if _codec == "5": 
+            return Prompt.ask("Enter custom audio encoder (e.g. libtwolame)")
+        return "libx264"
+
+    @staticmethod
+    def _parse_framerate(_framerate: str) -> str:
+        # Used internally to parse user's request on framerate
+        if _framerate == "1": 
+            return "24"
+        if _framerate == "2": 
+            return "30"
+        if _framerate == "3": 
+            return "50"
+        if _framerate == "4": 
+            return "60"
+        if _framerate == "5": 
+            return Prompt.ask("Enter custom framerate (e.g. 23.976)")
+        return "24"
+
+    @staticmethod
+    def _parse_samplerate(_samplerate: str) -> str:
+        # Used internally to parse user's request on samplerate
+        if _samplerate == "1": 
+            return "16000"
+        if _samplerate == "2": 
+            return "44100"
+        if _samplerate == "3": 
+            return "48000"
+        if _samplerate == "4": 
+            return "96000"
+        if _samplerate == "5": 
+            return Prompt.ask("Enter custom samplerate (e.g. 22050)")
+        return "48000"
+
+    @staticmethod
+    def _parse_bitrate(_bitrate: str) -> str:
+        # Used internally to parse user's request on bitrate
+        if _bitrate == "1": 
+            return "96k"
+        if _bitrate == "2": 
+            return "128k"
+        if _bitrate == "3": 
+            return "192k"
+        if _bitrate == "4": 
+            return "320k"
+        if _bitrate == "5": 
+            return Prompt.ask("Enter custom bitrate (e.g. 160)")
+        return "192k"
+        
+    @staticmethod
+    def _parse_commands(_commands: str) -> dict:
+        # Used internally to parse user's request on custom commands
+        _ret: dict = {}
+        if _commands == "":
+            return _ret
+            
+        _commands += " "
+        _option: str = ""
+        _value: str = ""
+        _is_option: bool = True
+        _current_str: str = ""
+        
+        for _ in range(len(_commands)):
+            if len(_commands) == 0:
+                break
+            if _commands[0] == "-":
+                _commands = _commands[1:]
+                _is_option = True
+                continue
+            if _commands[0] == " " and _is_option == True:
+                _is_option = False
+                _option = _current_str
+                _commands = _commands[1:]
+                _current_str = ""
+                _ret[_option] = None
+                continue
+            if _commands[0] == " " and _is_option == False:
+                _is_option = True
+                _value = _current_str
+                _commands = _commands[1:]
+                _current_str = ""
+                _ret[_option] = _value
+                continue
+                
+            _current_str += _commands[0]
+            _commands = _commands[1:]
+            continue
+                
+        return _ret
+
+
+class MetadataManager():
+    """The MetadataManager() class represents a media's metadata"""
+
+    def __init__(
+        self, 
+        _input_path: str, 
+        _debug: bool = False
+    ) -> None:
+        """Initializes an instance of `MediaManager`
+
+        + Args -
+            _input_path: the path of the media file that the object will represent
+            _debug: whether to use debug mode or not (debug/verbose mode causes
+            the program to output ffmpeg's logs in addition to the program's own
+            logs)
+        """
+        self.console = Console(highlight = False)
+        self.error_console = Console(stderr = True, style = "red")
+
+        self.input_path = _input_path
+        self.get_metadata(_debug)
+        
+        return
+
+    def get_metadata(
+        self, 
+        _debug: bool = False
+    ) -> None:
+        """Gets the metadata of the media file that the object is
+        currently representing. This method also loads the audio_stream
+        and video_stream attributes, which represents the first
+        video/audio stream the program encounters
+
+        + Returns - 
+            None: instead, fetches the metadata into the class attribute 
+            `self.metadata`
+        """
+        self.console.log("[Info] Probing file properties and metadata with ffprobe...")
+        _ffprobe = FFmpeg(executable = "ffprobe").input(
+                self.input_path,
+                print_format = 'json',
+                show_streams = None
+        )
+
+        @_ffprobe.on("stderr")
+        def ffmpeg_out(_Msg: str) -> None:
+            if _debug:
+                self.console.log(f"[FFprobe] {_Msg}")
+
+        self.metadata: dict = json.loads(_ffprobe.execute())
+        
+        self.audio_stream = self.get_audio_stream()
+        self.video_stream = self.get_video_stream()
+        return
+
+    
         
     def get_audio_stream(self) -> int:
         """Gets the index of the first audio stream in self.metadata. If
         multiple streams are present, the first stream is returned, and
         the rest of the streams are ignored
         
-        Returns:
-            An integer representing the channel of the first audio
+        + Returns -
+            Integer: representing the channel of the first audio
             stream. If no audio streams are present in the metadata,
             the function returns -1. 
         """
@@ -445,8 +679,8 @@ class MediaManager():
         multiple streams are present, the first stream is returned, and
         the rest of the streams are ignored
         
-        Returns:
-            An integer representing the channel of the first video
+        + Returns -
+            Integer: representing the channel of the first video
             stream. If no audio streams are present in the metadata,
             the function returns -1. 
         """
@@ -462,18 +696,22 @@ class MediaManager():
     def get_total_secs(self) -> int:
         """Gets the total length (in seconds) of the first video stream
 
-        Returns:
-            An integer representing the length (in seconds)
+        + Returns -
+            Integer: representing the length (in seconds)
         """
         _ret = self.metadata["streams"][self.video_stream]["duration"]
         _ret = float(_ret)
         return int(_ret)
 
     def get_framerate(self) -> int:
-        """Gets the average framerate of the first video stream
+        """Gets the average framerate of the first video stream. Because
+        the framerate is stored as a fractionin ffprobe, and some 
+        framerates are not whole numbers, this method has to manually parse
+        the framerate by doing division in order to get the framerate as a
+        floating-point integer
 
-        Returns:
-            An integer representing the framerate
+        + Returns -
+            Integer: representing the framerate
         """
         _fps: str = self.metadata["streams"][self.video_stream]["avg_frame_rate"]
         
@@ -492,113 +730,30 @@ class MediaManager():
         _denominator = float(_denominator)
         return int(_numerator // _denominator)
 
-    @staticmethod
-    def _parse_resolution(_resolution: str) -> str:
-        if _resolution == "1": 
-            return "1280x720"
-        if _resolution == "2": 
-            return "1920x1080"
-        if _resolution == "3": 
-            return "2560x1440"
-        if _resolution == "4": 
-            return "3840x2160"
-        if _resolution == "5": 
-            return Prompt.ask("Enter custom resolution (e.g. 2160x1440)")
-        return "1920x1080"
-
-    @staticmethod
-    def _parse_codec_video(_codec: str) -> str:
-        if _codec == "1": 
-            if sys.platform == "darwin": return "h264_videotoolbox"
-            else: return "libx264"
-        if _codec == "2": 
-            if sys.platform == "darwin": return "hevc_videotoolbox"
-            else: return "libx265"
-        if _codec == "3": 
-            return "libsvtav1"
-        if _codec == "4": 
-            return "libvpx-vp9"
-        if _codec == "5": 
-            return Prompt.ask("Enter custom video encoder (e.g. libwebp)")
-        return "libx264"
-
-    @staticmethod
-    def _parse_codec_audio(_codec: str) -> str:
-        if _codec == "1": 
-            return "aac"
-        if _codec == "2": 
-            return "libmp3lame"
-        if _codec == "3": 
-            return "alac"
-        if _codec == "4": 
-            return "flac"
-        if _codec == "5": 
-            return Prompt.ask("Enter custom audio encoder (e.g. libtwolame)")
-        return "libx264"
-
-    @staticmethod
-    def _parse_framerate(_framerate: str) -> str:
-        if _framerate == "1": 
-            return "24"
-        if _framerate == "2": 
-            return "30"
-        if _framerate == "3": 
-            return "50"
-        if _framerate == "4": 
-            return "60"
-        if _framerate == "5": 
-            return Prompt.ask("Enter custom framerate (e.g. 23.976)")
-        return "24"
-
-    @staticmethod
-    def _parse_samplerate(_samplerate: str) -> str:
-        if _samplerate == "1": 
-            return "16000"
-        if _samplerate == "2": 
-            return "44100"
-        if _samplerate == "3": 
-            return "48000"
-        if _samplerate == "4": 
-            return "96000"
-        if _samplerate == "5": 
-            return Prompt.ask("Enter custom samplerate (e.g. 22050)")
-        return "48000"
-
-    @staticmethod
-    def _parse_bitrate(_bitrate: str) -> str:
-        if _bitrate == "1": 
-            return "96k"
-        if _bitrate == "2": 
-            return "128k"
-        if _bitrate == "3": 
-            return "192k"
-        if _bitrate == "4": 
-            return "320k"
-        if _bitrate == "5": 
-            return Prompt.ask("Enter custom bitrate (e.g. 160)")
-        return "192k"
-
 
 class Program():
-    """
-    a media file converter using the ffmpeg engine. 
-    """
+    """A media file converter using the ffmpeg engine"""
 
     def __init__(self) -> None:
-        """Initializes an instance of `Program`"""
+        """Initializes an instance of `Program` by initializing the console, 
+        parsing the command-line arguments, and verifying thatthe installation
+        of ffmpeg is discoverable
+        """
         self.console = Console(highlight = False)
-        self.error_console = Console(stderr = True, style = "bold red")
+        self.error_console = Console(stderr = True, style = "red")
+        
         self.debug = False
         self.default = False
-
+        self.check_ffmpeg()
+        
         try: 
             self.parse_args()
         except Exception as e: 
             _error = str(e)
             self.error_console.log(f"[Error] Program().parse_args() failed: {_error}")
+            self.error_console.log(f"- Mpeg-convert may not function correctly")
+            self.error_console.log(f"- Proceed with caution")
             self.error_console.log()
-        
-        self.check_ffmpeg()
 
         if self.debug: 
             self.console.log(f"[yellow][Warning] Using debug mode")
@@ -609,14 +764,18 @@ class Program():
         return
 
     def parse_args(self) -> None:
-        """Parses the command-line arguments from the user
+        """Parses the command-line arguments from the user.
         
-        Notes:
-            Commands can be listed with the option `-h` or
-            `--help`. 
+        + Notes -
+            The path to the current working directories will be appended to
+            the input and output arguments if they are relative paths. This
+            is because the python-ffmpeg module does not operate in relative
+            paths. 
+        
+            Commands can be listed with the option `-h` or `--help`. 
         """
         _parser = argparse.ArgumentParser(
-            description = self.__doc__,
+            description = str(self.__doc__).lower(),
             usage = "mpeg-convert [options] <file.in> <file.out>",
             argument_default = argparse.SUPPRESS
         )
@@ -634,14 +793,14 @@ class Program():
         )
 
         _parser.add_argument(
-            "-d", "--debug", 
+            "-v", "--verbose", 
             action = "store_true", 
             default = False,
             help = "outputs all ffmpeg logs to the console"
         )
 
         _parser.add_argument(
-            "--default", 
+            "-d", "--default", 
             action = "store_true", 
             default = False,
             help = "use all default settings for encoding"
@@ -651,19 +810,25 @@ class Program():
 
         self.input = _args.input
         self.output = _args.output
-        self.debug = _args.debug
+        self.debug = _args.verbose
         self.default = _args.default
 
-        _cwd = os.getcwd()
+        _cwd = getcwd()
         _cwd = _cwd + "/"
         if self.input[0] != "/" and self.input[0] != "~":
                 self.input = _cwd + self.input
         if self.output[0] != "/" and self.output[0] != "~":
             self.output = _cwd + self.output
+            
         return
 
     def check_ffmpeg(self):
-        """Checks whether FFmpeg is installed and on the system path"""
+        """Checks whether FFmpeg is installed and on the system path
+        
+        + Notes -
+            If FFmpeg is not discoverable, function raises SystemExit and terminated
+            program. Otherwise, the function executes succesfully
+        """
         try:
             _ffprobe = FFmpeg(executable = "ffprobe").option("h")
             _ffmpeg = FFmpeg(executable = "ffmpeg").option("h")
@@ -679,27 +844,32 @@ class Program():
         return
 
     def process(self) -> None:
-        """Processes the input file by instantiating a MediaManager() object"""
-        self.media = MediaManager(self.input, self.debug)
+        """Processes the input file for metadata information (such as 
+        framerate, length, etc), outputs the metadata onto the console, 
+        and asks the user options on how the program (ffmpeg) should 
+        transcode the input file
+        
+        + Notes -
+        
+        Because the program uses the total number of video frames to
+        determine the progress, audio files (which have no video frames)
+        will cause the program's progress bar to be indeterminate
+        """
+        self.media       = MetadataManager(self.input, self.debug)
         self.framerate   = None
         self.total_secs  = None
         self.total_frame = None
+        
         try:
             self.framerate   = self.media.get_framerate()
             self.total_secs  = self.media.get_total_secs()
             self.total_frame = self.total_secs * self.framerate
-        except Exception:
-            self.error_console.log(f"[yellow][Warning] Failed retrieving total frames")
-            self.error_console.log(f"[yellow]- The program uses the total frames in the video to calculate remaining time")
-            self.error_console.log(f"[yellow]- Perhaps you are converting an audio file?")
-            self.error_console.log(f"[yellow]- The progress bar will be indeterminate")
-        
-        try:
-            MetadataLogger.log_metadata(self.media.metadata)
         except Exception as e:
-            _error = str(e)
-            self.error_console.log(f"[Error] MetadataLogger().log_metadata() failed: {_error}")
-
+            self.error_console.log(f"[yellow][Warning] Failed retrieving total frames")
+            self.error_console.log(f"[yellow]- The program uses video frames to calculate remaining time")
+            self.error_console.log(f"[yellow]- The progress bar will be indeterminate")
+            self.error_console.log(f"[yellow]- Perhaps you are converting an audio file?")
+            
         # MPEG-Convert has only been tested for a max
         # of 3 streams (video, audio, subtitles)
         if len(self.media.metadata['streams']) > 3:
@@ -708,29 +878,45 @@ class Program():
             self.console.log(f"- Mpeg-convert has not been tested for multiple video/audio streams")
             self.console.log(f"- You are entering unknown territory if you proceed! ")
             self.console.log(f"- This could also be a false detection")
-
-        self.media.ask_encode_options(self.default)
+        
+        MetadataLogger().log_metadata(self.media.metadata)
+        
+        self.options_handler = OptionsHandler(
+            self.media.metadata, 
+            self.media.audio_stream, 
+            self.media.video_stream
+        )
+        
+        self.options = self.options_handler.ask_encode_options(self.default)
         return
 
     def convert(self) -> None:
-        """Starts the conversion of the media file"""
-
+        """Starts the conversion of the media file using the FFmpeg() 
+        class from python-ffmpeg. Uses the options and metadata gathered 
+        from Program::process() to display progress and pass other
+        relevant information and arguments to the ffmpeg engine
+        
+        + Notes - 
+            See python-ffmpeg documentation for its api usage
+        """
         self.instance = (FFmpeg()
             .option("y")
             .input(self.input)
             .output(
                 self.output,
-                self.media.options
+                self.options
             ))
 
         self.last_frame: int = 0
+        self.start_time: float = time()
 
         with ProgressBar(
             TextColumn("[progress.description]{task.description}"),
             BarColumn(),
             TaskProgressColumn(text_format = "[progress.percentage]{task.percentage:>0.1f}% ({task.completed}/{task.total} frames)"),
             TimeRemainingColumn(elapsed_when_finished = True),
-            console = self.console
+            console = self.console,
+            transient = True
         ) as _bar:
 
             @self.instance.on("progress")
@@ -750,10 +936,13 @@ class Program():
 
             _task = _bar.add_task("[green]Transcoding file...", total = None)
             self.instance.execute()
+            
         return
 
     def run(self) -> None:
-        """The entrypoint of the program"""
+        """The entrypoint of the program. Starts the processing and
+        conversions, catches errors should they arise.
+        """
         
         self.console.log(f"[Info] Received (parsed) command-line arguments: '{self.input}' and '{self.output}'")
 
@@ -778,8 +967,23 @@ class Program():
             raise SystemExit(1)
 
         self.console.log(f"[green][Info] Succesfully executed mpeg-convert")
+        self.console.log(f"- Took {round(time() - self.start_time, 2)} seconds to convert {self.total_frame} frames")
+        self.console.log(f"- Took {self._readable_size(self.output)} mb of space")
+        self.console.log(f"- Output file saved to '{self.output}'")
         self.console.log(f"[Info] Safely exiting mpeg-convert...")
         return
+        
+    @staticmethod
+    def _readable_size(_path: str, _decimal_point = 2) -> str:
+        # Internal method used to calculate file size
+        size: float = path.getsize(_path)
+        
+        for i in ["bytes", "kb", "mb", "gb", "tb", "pb"]:
+            if size < 1024.0:
+                return f"{size:.{_decimal_point}f} {i}"
+            size /= 1024.0
+            
+        return f"{size:.{_decimal_point}f} pb"
 
 
 if __name__ == "__main__":
@@ -792,4 +996,4 @@ if __name__ == "__main__":
         Console().print()
         Console().log("[yellow][Warning] Program received KeyboardInterrupt...")
         Console().log("[yellow][Warning] Force quitting with os._exit()...")
-        os._exit(0)   # Force terminate all threads
+        _exit(0)   # Force terminate all threads
