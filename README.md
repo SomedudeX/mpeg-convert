@@ -30,6 +30,13 @@ If you would like to launch this script from anywhere, you can add it to the pat
 * Do you have python installed?
 * Do you have ffmpeg installed?
 
+* Common pitfalls:
+  + Does the output file have an extension?
+  + Does the extension match the codec?
+    - `HEVC` with `.mp4`  
+    - `ALAC` with `.m4a`
+  + Is the encoder installed on your system?
+
 ## Usage
 ```
 A media file converter using the ffmpeg engine. 
@@ -39,7 +46,7 @@ Usage: mpeg-convert [options] <filepath.in> <filepath.out>
 Options:
 	-h   --help        Shows the help page
 	-d   --debug       Enable debug mode to see FFmpeg logs
-	     --default	   Use default settings
+	     --default	   Use all default settings
 
 Custom encoders can be listed by `ffmpeg -codecs`
 
