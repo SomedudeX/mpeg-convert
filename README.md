@@ -1,9 +1,9 @@
 ## MPEG-Convert
-A python tool based on ffmpeg that makes converting between different formats/codecs a whole lot easier for the end-user
+A terminal-based python wrapper for ffmpeg that makes converting between different formats/codecs a whole lot easier for the end-user
 
-This tool is a simple wrapper for the ffmpeg engine to make the conversion between different video/audio formats a little easier for the folks who doesn't want to memorize twenty options to use ffmpeg. This program is not, however, a complete replacement for ffmpeg in any way. For that purpose, you should look look into other software such as Handbrake or DaVinci Resolve. 
+This tool makes using the ffmpeg engine to convert between different video/audio formats a whole lot easier for the folks who doesn't want to memorize twenty options to use ffmpeg. This program is not, however, a complete replacement for ffmpeg in any way. For that purpose, you should look look into other software such as Handbrake or DaVinci Resolve. 
 
-Additionally, this tool has been hacked together in a couple of days, meaning that some of the finer details has not been fleshed out or extensively tested -- expect some rough corners during use. This tool also has not been tested or designed for multiple video/audio streams. 
+Additionally, this tool has been hacked together in a couple of weeks, meaning that some of the finer details has not been fleshed out or extensively tested -- expect some rough corners during use. This tool also has not been tested or designed for multiple video or audio streams. 
 
 
 ## Installation
@@ -23,7 +23,9 @@ Additionally, this tool has been hacked together in a couple of days, meaning th
 
 If you would like to launch this script from anywhere, you can add it to the path (duh)
 > [!NOTE]
-> The installation instructions are for systems running Unix-based systems (macOS/Linux), and has not been tested with Windows. 
+> The installation instructions are for systems running Unix-based systems (macOS/Linux), and has not been tested with Windows.
+
+Alternatively, you could always go to the [releases](https://github.com/SomedudeX/MPEG-Convert/releases) tab and find some install shell scripts there (linux/macos only). They are scripts written very hastefully, and are only meant to be a quick and dirty way of installing mpeg-convert and all of its dependencies. If you have some time to spare, definitely clone the repository, review the `requirements.txt`, review the `App/mpeg-convert.py` script, and then install and customize them to your liking. 
 
 ## Troubleshooting
 
