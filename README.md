@@ -6,6 +6,9 @@ This tool makes using the ffmpeg engine to convert between different video/audio
 Additionally, this tool has been hacked together in a couple of weeks, meaning that some of the finer details has not been fleshed out or extensively tested -- expect some rough corners during use. This tool also has not been tested or designed for multiple video or audio streams. 
 
 
+![demo](https://github.com/SomedudeX/MPEG-Convert/assets/101906945/d69c68b0-4122-4ebc-a6fb-3de50448dcd0)
+
+
 ## Installation
 
 #### Automatic
@@ -65,4 +68,5 @@ Custom encoders can be listed by `ffmpeg -codecs`. Additionally,
 FFmpeg will automatically detect the file extensions/containers
 to convert to/from; you do not need to specify anything.
 ```
+
 --
