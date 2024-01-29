@@ -69,122 +69,6 @@ else:
         'b:a': '320k', 
         'ac': '2'
     }
-
-
-class MetadataLogger():
-    """The MetadataLogger() class only has static methods and its only 
-    purpose is to log metadata. The class is a `static class`, if you're 
-    coming from C#
-    """
-    
-    @staticmethod
-    def log_metadata(_metadata: dict) -> None:
-        """Prints the contents of a metadata dictionary from ffprobe
-        
-        + Args -
-            Dictionary: representing the however many streams of data from
-            ffprobe
-            
-        + Returns - 
-            None: the function outputs the information of the different streams
-            detected onto the console. 
-        """
-        _metadata = _metadata["streams"]
-        Console().log(f"[Info] Retrieved source info: ", highlight = False)
-        
-        for _stream in _metadata:
-            if _stream["codec_type"] == "video":
-                MetadataLogger.log_video_metadata(_stream)
-            elif _stream["codec_type"] == "audio":
-                MetadataLogger.log_audio_metadata(_stream)
-            else:
-                Console().log(f"[bold]- Auxiliary (source stream {_stream["codec_type"]})")
-                
-        Console().log(f"[Info] End source info ", highlight = False)
-        return
-    
-    @staticmethod
-    def log_video_metadata(_video_stream: dict) -> None:
-        """Logs the video metadata of a stream onto the console
-        
-        + Args -
-            Dictionary: representing a video stream provided by ffprobe
-        """
-        
-        # The notorious 'one liners', except 14 times
-        try: _idx: str = f"{_video_stream['index']}"
-        except: _idx: str = f"[yellow]-"
-        try: _col: str = f"{_video_stream['color_space']}"
-        except: _col: str = f"[yellow]-"
-        try: _fmt: str = f"{_video_stream['codec_long_name']}"
-        except: _fmt: str = f"[yellow]-"
-        try: _res: str = f"{_video_stream['width']}x{_video_stream['height']}"
-        except: _res: str = f"[yellow]-"
-        try: _fps: str = f"{MetadataLogger._get_framerate(_video_stream['avg_frame_rate'])}"
-        except: _fps: str = f"[yellow]-"
-        try: _dur: str = f"{round(float(_video_stream['duration']), 2)}"
-        except: _dur: str = f"[yellow]-"
-        try: _fra: str = f"{round(float(_fps) * float(_dur), 2)}"
-        except: _fra: str = f"[yellow]-"
-        
-        Console().log(f"[bold]- Video (source stream {_idx})")
-        Console().log(f"|    Video codec      : {_fmt}", highlight = False)
-        Console().log(f"|    Video color      : {_col}", highlight = False)
-        Console().log(f"|    Video resolution : {_res}", highlight = False)
-        Console().log(f"|    Video framerate  : {_fps} fps", highlight = False)
-        Console().log(f"|    Video length     : {_dur} seconds", highlight = False)
-        Console().log(f"|    Total frames     : {_fra} frames", highlight = False)
-        return
-        
-    @staticmethod
-    def log_audio_metadata(_audio_stream: dict) -> None:
-        """Logs the audio metadata of a stream
-        
-        + Args -
-            Dictionary: representing a audio stream provided by ffprobe
-        """
-        
-        # The notorious 'one liners', except 14 times
-        try: _idx: str = f"{_audio_stream['index']}"
-        except: _idx: str = f"[yellow]-"
-        try: _fmt: str = f"{_audio_stream['codec_long_name']}"
-        except: _fmt: str = f"[yellow]-"
-        try: _prf: str = f"{_audio_stream['profile']}"
-        except: _prf: str = f"[yellow]-"
-        try: _smp: str = f"{_audio_stream['sample_rate']}"
-        except: _smp: str = f"[yellow]-"
-        try: _chn: str = f"{_audio_stream['channels']}"
-        except: _chn: str = f"[yellow]-"
-        try: _lay: str = f"{_audio_stream['channel_layout'].capitalize()}"
-        except: _lay: str = f"[yellow]-"
-        try: _btr: str = f"{int(_audio_stream['bit_rate']) // 1000}"
-        except: _btr: str = f"[yellow]-"
-        
-        Console().log(f"[bold]- Audio (source stream {_idx})")
-        Console().log(f"|    Audio codec      : {_fmt}", highlight = False)
-        Console().log(f"|    Audio profile    : {_prf}", highlight = False)
-        Console().log(f"|    Audio samplerate : {_smp} Hz", highlight = False)
-        Console().log(f"|    Audio channels   : {_chn}", highlight = False)
-        Console().log(f"|    Audio layout     : {_lay}", highlight = False)
-        Console().log(f"|    Audio bitrate    : {_btr} kb/s", highlight = False)
-        return
-    
-    @staticmethod
-    def _get_framerate(_fps: str) -> str:     # Static overload for MetadataManager::get_framerate()
-        _numerator = ""                       # It is a member of MetadataLogger because python does
-        for _ in range(len(_fps)):            # not support function overloading. See get_framerate()
-            if _fps[0] != "/":                # method from class MetadataManager for docs
-                _numerator += _fps[0]
-                _fps = _fps[1:]
-                continue
-            _fps = _fps[1:]
-            break
-            
-        _denominator = _fps
-        
-        _numerator = float(_numerator)
-        _denominator = float(_denominator)
-        return str(round(_numerator / _denominator, 2))
         
 
 class OptionsHandler():
@@ -596,6 +480,122 @@ class OptionsHandler():
             continue
                 
         return _ret
+
+
+class MetadataLogger():
+    """The MetadataLogger() class only has static methods and its only 
+    purpose is to log metadata. The class is a `static class`, if you're 
+    coming from C#
+    """
+    
+    @staticmethod
+    def log_metadata(_metadata: dict) -> None:
+        """Prints the contents of a metadata dictionary from ffprobe
+        
+        + Args -
+            Dictionary: representing the however many streams of data from
+            ffprobe
+            
+        + Returns - 
+            None: the function outputs the information of the different streams
+            detected onto the console. 
+        """
+        _metadata = _metadata["streams"]
+        Console().log(f"[Info] Retrieved source info: ", highlight = False)
+        
+        for _stream in _metadata:
+            if _stream["codec_type"] == "video":
+                MetadataLogger.log_video_metadata(_stream)
+            elif _stream["codec_type"] == "audio":
+                MetadataLogger.log_audio_metadata(_stream)
+            else:
+                Console().log(f"[bold]- Auxiliary (source stream {_stream["codec_type"]})")
+                
+        Console().log(f"[Info] End source info ", highlight = False)
+        return
+    
+    @staticmethod
+    def log_video_metadata(_video_stream: dict) -> None:
+        """Logs the video metadata of a stream onto the console
+        
+        + Args -
+            Dictionary: representing a video stream provided by ffprobe
+        """
+        
+        # The notorious 'one liners', except 14 times
+        try: _idx: str = f"{_video_stream['index']}"
+        except: _idx: str = f"[yellow]-"
+        try: _col: str = f"{_video_stream['color_space']}"
+        except: _col: str = f"[yellow]-"
+        try: _fmt: str = f"{_video_stream['codec_long_name']}"
+        except: _fmt: str = f"[yellow]-"
+        try: _res: str = f"{_video_stream['width']}x{_video_stream['height']}"
+        except: _res: str = f"[yellow]-"
+        try: _fps: str = f"{MetadataLogger._get_framerate(_video_stream['avg_frame_rate'])}"
+        except: _fps: str = f"[yellow]-"
+        try: _dur: str = f"{round(float(_video_stream['duration']), 2)}"
+        except: _dur: str = f"[yellow]-"
+        try: _fra: str = f"{round(float(_fps) * float(_dur), 2)}"
+        except: _fra: str = f"[yellow]-"
+        
+        Console().log(f"[bold]- Video (source stream {_idx})")
+        Console().log(f"|    Video codec      : {_fmt}", highlight = False)
+        Console().log(f"|    Video color      : {_col}", highlight = False)
+        Console().log(f"|    Video resolution : {_res}", highlight = False)
+        Console().log(f"|    Video framerate  : {_fps} fps", highlight = False)
+        Console().log(f"|    Video length     : {_dur} seconds", highlight = False)
+        Console().log(f"|    Total frames     : {_fra} frames", highlight = False)
+        return
+        
+    @staticmethod
+    def log_audio_metadata(_audio_stream: dict) -> None:
+        """Logs the audio metadata of a stream
+        
+        + Args -
+            Dictionary: representing a audio stream provided by ffprobe
+        """
+        
+        # The notorious 'one liners', except 14 times
+        try: _idx: str = f"{_audio_stream['index']}"
+        except: _idx: str = f"[yellow]-"
+        try: _fmt: str = f"{_audio_stream['codec_long_name']}"
+        except: _fmt: str = f"[yellow]-"
+        try: _prf: str = f"{_audio_stream['profile']}"
+        except: _prf: str = f"[yellow]-"
+        try: _smp: str = f"{_audio_stream['sample_rate']}"
+        except: _smp: str = f"[yellow]-"
+        try: _chn: str = f"{_audio_stream['channels']}"
+        except: _chn: str = f"[yellow]-"
+        try: _lay: str = f"{_audio_stream['channel_layout'].capitalize()}"
+        except: _lay: str = f"[yellow]-"
+        try: _btr: str = f"{int(_audio_stream['bit_rate']) // 1000}"
+        except: _btr: str = f"[yellow]-"
+        
+        Console().log(f"[bold]- Audio (source stream {_idx})")
+        Console().log(f"|    Audio codec      : {_fmt}", highlight = False)
+        Console().log(f"|    Audio profile    : {_prf}", highlight = False)
+        Console().log(f"|    Audio samplerate : {_smp} Hz", highlight = False)
+        Console().log(f"|    Audio channels   : {_chn}", highlight = False)
+        Console().log(f"|    Audio layout     : {_lay}", highlight = False)
+        Console().log(f"|    Audio bitrate    : {_btr} kb/s", highlight = False)
+        return
+    
+    @staticmethod
+    def _get_framerate(_fps: str) -> str:     # Static overload for MetadataManager::get_framerate()
+        _numerator = ""                       # It is a member of MetadataLogger because python does
+        for _ in range(len(_fps)):            # not support function overloading. See get_framerate()
+            if _fps[0] != "/":                # method from class MetadataManager for docs
+                _numerator += _fps[0]
+                _fps = _fps[1:]
+                continue
+            _fps = _fps[1:]
+            break
+            
+        _denominator = _fps
+        
+        _numerator = float(_numerator)
+        _denominator = float(_denominator)
+        return str(round(_numerator / _denominator, 2))
 
 
 class MetadataManager():
