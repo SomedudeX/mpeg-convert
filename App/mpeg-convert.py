@@ -280,7 +280,7 @@ class OptionsHandler():
             
         self.console.print("Custom options to ffmpeg ('-option value -option2 value...')")
         _additional_commands = Prompt.ask(
-            "Use empty field to skip: "
+            "Use empty field to skip"
         )
         
         if _metadata_strip:
