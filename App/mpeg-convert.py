@@ -957,7 +957,7 @@ class Program():
             self.error_console.log(f"[Fatal] An ffmpeg exception has occured!")
             self.error_console.log(f"[red]- Error message from ffmpeg: [white]{_error.message.lower()}", highlight = False)
             self.error_console.log(f"[red]- Arguments to execute ffmpeg: [white]{_ffmpeg_args.lower()}", highlight = False)
-            self.error_console.log(f"- Use the `--debug` option to hear ffmpeg output", highlight = False)
+            self.error_console.log(f"- Use the '-v' or '--verbose' option to hear ffmpeg output", highlight = False)
             self.error_console.log(f"- Common pitfalls: ", highlight = False)
             self.error_console.log(f"  * Does the output file have an extension?", highlight = False)
             self.error_console.log(f"  * Does the extension match the codec?", highlight = False)
