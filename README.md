@@ -16,7 +16,7 @@ eval "$(curl -s https://raw.githubusercontent.com/SomedudeX/MPEG-Convert/main/in
 ```
 ...which will install mpeg-convert and all of its dependencies for you through pip.
 
-Alternatively, you could also go to the [releases](https://github.com/SomedudeX/MPEG-Convert/releases) tab and find some install shell scripts there (Linux/macOS only). They are scripts written very hastefully, and are only meant to be a quick and dirty way of installing mpeg-convert and all of its dependencies. If you have some time to spare, definitely clone the repository, review the `requirements.txt`, review the `App/mpeg-convert.py` script, and then install and customize them to your liking. 
+Alternatively, you could also go to the [releases](https://github.com/SomedudeX/MPEG-Convert/releases) tab and find some install shell scripts there (Linux/macOS only). They are scripts written very hastefully, and are only meant to be a quick and dirty way of installing mpeg-convert and all of its dependencies. If you have some time to spare, definitely use the manual install. This way you can not only review the dependencies and script yourself, but also get the latest patches. 
 
 #### Manual
 
