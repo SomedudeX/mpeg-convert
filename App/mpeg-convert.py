@@ -66,8 +66,8 @@ VIDEO_OPTIONS = [
         "option": "-c:v",
         "default": 2,
         "choices": [
-            ("H.264", "libx264"),       # macOS: change 'libx264' to 'h264_videotoolbox'
-            ("H.265", "libx265"),       # macOS: change 'libx265' to 'hevc_videotoolbox'
+            ("H.264", "h264_videotoolbox"),       # macOS: change 'libx264' to 'h264_videotoolbox'
+            ("H.265", "hevc_videotoolbox"),       # macOS: change 'libx265' to 'hevc_videotoolbox'
             ("AV1", "libsvtav1"),
             ("VP9", "libvpx-vp9"),
         ]
@@ -135,7 +135,7 @@ AUDIO_OPTIONS = [
 DEFAULT_OPTIONS = {
     "r": "24",
     "s": "1920x1080",
-    "c:v": "libx264",       # macOS: change 'libx264' to 'h264_videotoolbox'
+    "c:v": "h264_videotoolbox",       # macOS: change 'libx264' to 'h264_videotoolbox'
     "c:a": "libmp3lame", 
     "b:a": "192k", 
     "ar": "44100", 
@@ -168,6 +168,14 @@ except ModuleNotFoundError as e:
     print(f" - Make sure you install all required modules by using `pip`")
     print(f" - Exiting...")
     raise SystemExit(-1)
+    
+    
+ARGPARSE_EPILOG = (
+    "custom encoders can be listed by `ffmpeg -codecs`. additionally,\
+    ffmpeg will automatically detect the file extensions/containers\
+    to convert to/from; you do not need to specify anything.\
+    "
+)
         
 
 class OptionsHandler():
@@ -725,20 +733,22 @@ class Program():
         
         self.verbose = False
         self.default = False
-        self.check_ffmpeg()
         
         try: 
             self.parse_args()
         except Exception as e: 
             _error = str(e)
             self.error_console.log(f"[Error] Program().parse_args() failed: {_error}")
-            self.error_console.log(f"- Mpeg-convert may not function correctly")
+            self.error_console.log(f"- Mpeg-convert usage: mpeg-convert [options] <file.in> <file.out>")
+            self.error_console.log(f"- Program terminating due to inapt command-line arguments")
+            raise SystemExit(1)
 
         if self.verbose: 
             self.console.log(f"[yellow][Warning] Using debug mode")
         if self.default: 
             self.console.log(f"[yellow][Warning] Using all default options")
-            
+        
+        self.check_ffmpeg()
         return
 
     def parse_args(self) -> None:
@@ -755,7 +765,9 @@ class Program():
         _parser = argparse.ArgumentParser(
             description = str(self.__doc__).lower(),
             usage = "mpeg-convert [options] <file.in> <file.out>",
-            argument_default = argparse.SUPPRESS
+            epilog = ARGPARSE_EPILOG,
+            argument_default = argparse.SUPPRESS,
+            exit_on_error = True
         )
 
         _parser.add_argument(
@@ -819,6 +831,7 @@ class Program():
             program. Otherwise, the function executes succesfully
         """
         try:
+            self.console.log("[Info] Verifying FFmpeg installation")
             _ffprobe = FFmpeg(executable = "ffprobe").option("h")
             _ffmpeg = FFmpeg(executable = "ffmpeg").option("h")
             _ffprobe.execute()
