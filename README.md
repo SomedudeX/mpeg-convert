@@ -9,6 +9,8 @@ Additionally, this tool has been hacked together in a couple of weeks, meaning t
 
 ## Installation 
 
+Make sure you have Python 3 and FFmpeg installed.
+
 * Clone this repository
   
   ```bash
@@ -28,24 +30,12 @@ Additionally, this tool has been hacked together in a couple of weeks, meaning t
   ./App/mpeg-convert.py --help
   ```
   
-> [!NOTE]
-> You may need to `sudo chmod +x` the script in order to run it
+You may need to `sudo chmod +x` the script in order to run it. Additionally, if you would like to run this script from anywhere in the terminal, you can add it to your PATH variable. 
 
-## Usage
-```
-A media file converter using the ffmpeg engine. 
-
-Usage: mpeg-convert [options] <filepath.in> <filepath.out>
-
-Options:
-	-h   --help        Shows the help page
-	-v   --verbose     Enable debug mode to see FFmpeg logs
-	-d   --default	   Use all default settings
-
-Custom encoders can be listed by `ffmpeg -codecs`. Additionally,
-FFmpeg will automatically detect the file extensions/containers
-to convert to/from; you do not need to specify anything.
-```
+> [!IMPORTANT]
+> For macOS users, make sure to go into the script and do a global find-and-replace of `libx264` to `h264_videotoolbox` and `libx265` to `hevc_videotoolbox`.
+>
+> This is very much recommended because the regular libx264 encoder is horribly slow on macOS, so by using Apple's own encoders, you can get much faster encoding results.
 
 ## Customizing
 
