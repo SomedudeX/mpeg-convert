@@ -31,7 +31,7 @@ curl -s https://raw.githubusercontent.com/SomedudeX/MPEG-Convert/main/App/mpeg-c
 echo " - Received mpeg-convert.py"
 
 echo " - Installing dependencies with pip3: \n   * python-ffmpeg\n   * rich"
-python -m pip install -r requirements.txt >/dev/null 2>&1
+python -m pip install -r requirements.txt 2>&1 > /dev/null &;
 
 echo " - Cleaning up"
 rm requirements.txt
