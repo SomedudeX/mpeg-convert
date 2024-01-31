@@ -54,7 +54,7 @@ eval "$(curl -s https://raw.githubusercontent.com/SomedudeX/MPEG-Convert/main/in
 You may need to `sudo chmod +x` the script in order to run it. Additionally, if you would like to run this script from anywhere in the terminal, you can add the script's path to your environment's `$PATH` variable. 
 
 > [!WARNING]
-> The manual installation instructions are designed for Unix-based systems and are not tested for Windows. 
+> The manual installation instructions are designed for POSIX-compliant systems and are not tested for Windows. 
 
 ## Customizing
 
