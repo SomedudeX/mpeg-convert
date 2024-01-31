@@ -1,26 +1,149 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# This file uses the following styles for token names: 
+
+# -*-  Style guide  -*-
+#
+# This file uses the following styles for token names
+#
 #     PascalCase       Class name
 #     snake_case       Variable or function/method name
 #     _underscore      Variable/function should be used only intenally in
 #                      the scope it's declared in (and should not be
 #                      modified by the end user)
 #
-# Notes: 
-#     Because python does not have a reliable way of signalling the end
-#     of a particular scope, method, or class, any class/method in this 
-#     file will always terminate in `return` regardless of the return
-#     type. 
+# Because python does not have a reliable way of signalling the end
+# of a particular scope, method, or class, any class/method in this 
+# file will always terminate in `return` regardless of the return
+# type. 
 #
-#     In addition, python's native type hinting is used whenever possible
-#     in order to catch issues and minimize problems with static analyzers
+# In addition, python's native type hinting is used whenever possible
+# in order to catch issues and minimize problems with static analyzers
 #
 # This file uses 4 spaces for indentation. 
 
 
-import sys
+# -*- Customization -*-
+#
+# The options specified below are presented to you when converting a file. You
+# can customize these options to your liking. For more information/documentation
+# on how to customize these questions and parameters, go to the following link:
+#
+# https://github.com/SomedudeX/MPEG-Convert/tree/main
+
+
+VIDEO_OPTIONS = [
+
+    {
+        "type": "choice",
+        "title": "Video resolution...",
+        "option": "-s",
+        "default": 2,
+        "choices": [
+            ("1280x720", "1280x720"),
+            ("1920x1080", "1920x1080"),
+            ("2560x1440", "2560x1440"),
+            ("3840x2160", "3840x2160"),
+        ]
+    },
+    
+    {
+        "type": "choice",
+        "title": "Video framerate...",
+        "option": "-r",
+        "default": 1,
+        "choices": [
+            ("24 fps", "24"),
+            ("30 fps", "30"),
+            ("48 fps", "48"),
+            ("60 fps", "60"),
+        ]
+    },
+    
+    {
+        "type": "choice",
+        "title": "Video codec...",
+        "option": "-c:v",
+        "default": 2,
+        "choices": [
+            ("H.264", "libx264"),       # macOS: change 'libx264' to 'h264_videotoolbox'
+            ("H.265", "libx265"),       # macOS: change 'libx265' to 'hevc_videotoolbox'
+            ("AV1", "libsvtav1"),
+            ("VP9", "libvpx-vp9"),
+        ]
+    },
+    
+    {
+        "type": "choice",
+        "title": "Video quality...",
+        "option": "-crf",
+        "default": 2,
+        "choices": [
+            ("CRF 18", "18"),
+            ("CRF 21", "21"),
+            ("CRF 24", "24"),
+            ("CRF 32", "32"),
+        ]
+    }
+]
+
+AUDIO_OPTIONS = [
+
+    {
+        "type": "choice",
+        "title": "Audio codec...",
+        "option": "-c:a",
+        "default": 2,
+        "choices": [
+            ("AAC", "aac"),
+            ("MP3", "libmp3lame"),
+            ("ALAC", "alac"),
+            ("FLAC", "flac"),
+        ]
+    },
+    
+    {
+        "type": "choice",
+        "title": "Audio bitrate...",
+        "option": "-b:a",
+        "default": 2,
+        "choices": [
+            ("96k", "96k"),
+            ("128k", "128k"),
+            ("192k", "192k"),
+            ("320k", "320k")
+        ]
+    },
+    
+    {
+        "type": "choice",
+        "title": "Audio samplerate...",
+        "option": "-ar",
+        "default": 2,
+        "choices": [
+            ("16000hz", "16000"),
+            ("44100hz", "44100"),
+            ("48000hz", "48000"),
+            ("96000hz", "96000")
+        ]
+    }
+]
+
+# The options specified below are the default options that the program will use when 
+# you use the '-d' or '--default' flag. 
+
+DEFAULT_OPTIONS = {
+    "r": "24",
+    "s": "1920x1080",
+    "c:v": "libx264",       # macOS: change 'libx264' to 'h264_videotoolbox'
+    "c:a": "libmp3lame", 
+    "b:a": "192k", 
+    "ar": "44100", 
+    "crf": "21", 
+    "ac": "2"
+}
+    
+
 import json
 import argparse
 
@@ -35,7 +158,7 @@ try:
     from rich.progress import TaskProgressColumn, TextColumn
     from rich.progress import BarColumn, TimeRemainingColumn
     from rich.progress import Progress as ProgressBar
-    from rich.prompt import Prompt, IntPrompt, Confirm
+    from rich.prompt import Prompt, Confirm
     from rich.console import Console
     from rich import traceback
     
@@ -45,30 +168,6 @@ except ModuleNotFoundError as e:
     print(f" - Make sure you install all required modules by using `pip`")
     print(f" - Exiting...")
     raise SystemExit(-1)
-
-
-if sys.platform == "darwin":
-    DEFAULT_OPTIONS = {
-        'r': '24',
-        's': '1920x1080',                   # On macOS, libx264 provides terrible performance, so
-        'codec:v': 'h264_videotoolbox',     # 'h264_videotoolbox', apple's own video encoder, is used.
-        'crf': '21', 
-        'codec:a': 'libmp3lame', 
-        'ar': '44100', 
-        'b:a': '320k', 
-        'ac': '2'
-    }
-else:
-    DEFAULT_OPTIONS = {
-        'r': '24',
-        's': '1920x1080',
-        'codec:v': 'libx264', 
-        'crf': '21', 
-        'codec:a': 'libmp3lame', 
-        'ar': '44100', 
-        'b:a': '320k', 
-        'ac': '2'
-    }
         
 
 class OptionsHandler():
@@ -131,56 +230,54 @@ class OptionsHandler():
             return self.options
 
         self.console.print()
-        self.console.print("[bold] -*- Encoding options -*-")
-        self.console.print()
-        self.console.print("Encode for...")
+        self.console.print(" -  Encode for...")
         self.console.print("[1] Audio only")
         self.console.print("[2] Video only")
-        self.console.print("[3] Both (default)")
+        self.console.print("[3] Video and audio (default)")
         _encode = Prompt.ask(
-            "Select an option", 
+            " -  Select an option", 
             choices = ["1", "2", "3"], 
             default = "3"
         )
 
         self.options: dict = {}
         if _encode == "1": 
-            self.options = self.ask_audio_options()
+            self.options = self._ask_audio_options()
             self.options["vn"] = None
         if _encode == "2": 
-            self.options = self.ask_video_options()
+            self.options = self._ask_video_options()
             self.options["an"] = None
         if _encode == "3": 
-            self.options = self.ask_audio_options() | self.ask_video_options()
+            self.options = (self._ask_video_options() | 
+                            self._ask_audio_options())
             
         self.console.print()
         self.console.print("[bold] -*- Miscellaneous options -*-")
+        
         self.console.print()
         _metadata_strip = Prompt.ask(
-            "Enable file metadata stripping",
+            " -  Enable file metadata stripping",
             choices = ["y", "n"],
             default = "y"
         )
-            
-        self.console.print("Custom options to ffmpeg ('-option value -option2 value...')")
+        
+        self.console.print()
         _additional_commands = Prompt.ask(
-            "Use empty field to skip"
+            " -  Custom options to ffmpeg ('-option value -option2 value...')\n" +
+            " -  Use empty field to skip"
         )
         
-        if _metadata_strip:
+        if _metadata_strip == "y":
             self.options["map_metadata"] = "-1"
-        else:
+        if _metadata_strip == "n":
             self.options["map_metadata"] = "0"
-            
-        _additional_commands = self._parse_commands(_additional_commands)
-        self.options = self.options | _additional_commands
-
-        self.console.print()
-        self.console.log(f"[Log] Finished asking encoding options")
         
+        self.options = self.options | self._parse_custom_command(_additional_commands)
+        
+        self.console.print()
         return self.options
 
-    def ask_audio_options(self) -> dict:
+    def _ask_audio_options(self) -> dict:
         """Asks the user for audio encoding options
         
         + Notes - 
@@ -197,72 +294,17 @@ class OptionsHandler():
             self.error_console.log("[Error] No audio stream detected in metadata! ")
             self.error_console.log("- This may lead to unexpected issues")
             _continue = Confirm.ask("- Would you like to continue? ")
-            
-            if _continue:
-                pass
-            else:
+            if not _continue:
                 return _ret
         
         self.console.print()
         self.console.print("[bold] -*- Audio options -*-")
-        self.console.print()
-        self.console.print("Audio codec presets -")
-        self.console.print("[1] AAC")
-        self.console.print("[2] MP3 (default)")
-        self.console.print("[3] ALAC")
-        self.console.print("[4] FLAC")
-        self.console.print("[5] Custom encoder")
-        _codec = Prompt.ask(
-            "Select a codec", 
-            choices = ["1", "2", "3", "4", "5"],
-            default = "2"
-        )
-
-        _codec = self._parse_codec_audio(_codec)
-
-        self.console.print()
-        self.console.print("Audio samplerate presets -")
-        self.console.print("[1] 16000hz")
-        self.console.print("[2] 44100hz")
-        self.console.print("[3] 48000hz (default)")
-        self.console.print("[4] 96000hz")
-        self.console.print("[5] Custom samplerate")
-        _samplerate = Prompt.ask(
-            "Select a samplerate", 
-            choices = ["1", "2", "3", "4", "5"], 
-            default = "3"
-        )
-
-        _samplerate = self._parse_samplerate(_samplerate)
+        for _question in AUDIO_OPTIONS:
+            _ret = _ret | self._ask_question(_question)
         
-        self.console.print()
-        self.console.print("Audio bitrate presets -")
-        self.console.print("[1] 96k")
-        self.console.print("[2] 128k")
-        self.console.print("[3] 192k (default)")
-        self.console.print("[4] 320k")
-        self.console.print("[5] Custom bitrate")
-        _bitrate = Prompt.ask(
-            "Select a bitrate", 
-            choices = ["1", "2", "3", "4", "5"], 
-            default = "3"
-        )
-
-        _bitrate = self._parse_bitrate(_bitrate)
-        
-        # A try-catch statement is used because of the possibility
-        # that an audio stream might not be present. 
-        try: _channels: int = self.metadata["streams"][self.audio_stream]["channels"]
-        except: _channels: int = 2
-        
-        _ret["codec:a"] = _codec
-        _ret["ar"] = _samplerate
-        _ret["b:a"] = _bitrate
-        _ret["ac"] = str(_channels)
-
         return _ret
 
-    def ask_video_options(self) -> dict:
+    def _ask_video_options(self) -> dict:
         """Asks the user for video encoding options
         
         + Notes - 
@@ -272,178 +314,115 @@ class OptionsHandler():
         + Returns -
             Dictionary: containing the arguments to pass to FFmpeg. 
         """
-        
         _ret: dict = {}
         
         if self.video_stream == -1:
             self.error_console.log("[Error] No video stream detected in metadata! ")
             self.error_console.log("- This may lead to unexpected issues")
             _continue = Confirm.ask("- Would you like to continue? ")
-            if _continue:
-                pass
-            else:
+            if not _continue:
                 return _ret
-            
+                
         self.console.print()
-        self.console.print("[bold]-*- Video options -*-")
-
-        self.console.print()
-        self.console.print("Video resolution presets -")
-        self.console.print("[1] 1280x720")
-        self.console.print("[2] 1920x1080 (default)")
-        self.console.print("[3] 2560x1440")
-        self.console.print("[4] 3840x2160")
-        self.console.print("[5] Custom resolution")
-        _resolution = Prompt.ask(
-            "Select a resolution", 
-            choices = ["1", "2", "3", "4", "5"], 
-            default = "2"
-        )
-
-        _resolution = self._parse_resolution(_resolution)
-
-        self.console.print()
-        self.console.print(f"Video framerate presets -")
-        self.console.print(f"[1] 24fps (default)")
-        self.console.print(f"[2] 30fps")
-        self.console.print(f"[3] 50fps")
-        self.console.print(f"[4] 60fps")
-        self.console.print(f"[5] Custom framerate")
-        _framerate = Prompt.ask(
-            "Select a framerate", 
-            choices = ["1", "2", "3", "4", "5"], 
-            default = "1"
-        )
-
-        _framerate = self._parse_framerate(_framerate)
-
-        self.console.print()
-        self.console.print(f"Video codec presets -")
-        self.console.print(f"[1] H.264", highlight = False)
-        self.console.print(f"[2] H.265 (default)", highlight = False)
-        self.console.print(f"[3] AV1")
-        self.console.print(f"[4] VP9")
-        self.console.print(f"[5] Custom codec")
-        _codec = Prompt.ask(
-            "Select a codec", 
-            choices = ["1", "2", "3", "4", "5"], 
-            default = "2"
-        )
-
-        _codec = self._parse_codec_video(_codec)
-
-        self.console.print()
-        self.console.print(f"Video quality -")
-        _doLossless = Confirm.ask("Enable lossless video (CRF = 0)", default = False)
-
-
-        _ret["r"] = _framerate
-        _ret["s"] = _resolution
-        _ret["codec:v"] = _codec
-
-        if _doLossless:
-            _ret["crf"] = "0"
-        else:
-            _ret["crf"] = IntPrompt.ask("Enter a CRF value (0-51)")
+        self.console.print("[bold] -*- Video options -*-")
+        for _question in VIDEO_OPTIONS: 
+            _ret = _ret | self._ask_question(_question)
 
         return _ret
-    
-    @staticmethod
-    def _parse_resolution(_resolution: str) -> str:
-        # Used internally to parse user's request on resolution
-        if _resolution == "1": 
-            return "1280x720"
-        if _resolution == "2": 
-            return "1920x1080"
-        if _resolution == "3": 
-            return "2560x1440"
-        if _resolution == "4": 
-            return "3840x2160"
-        if _resolution == "5": 
-            return Prompt.ask("Enter custom resolution (e.g. 2160x1440)")
-        return "1920x1080"
-
-    @staticmethod
-    def _parse_codec_video(_codec: str) -> str:
-        # Used internally to parse user's request on codec
-        if _codec == "1": 
-            if sys.platform == "darwin": return "h264_videotoolbox"
-            else: return "libx264"
-        if _codec == "2": 
-            if sys.platform == "darwin": return "hevc_videotoolbox"
-            else: return "libx265"
-        if _codec == "3": 
-            return "libsvtav1"
-        if _codec == "4": 
-            return "libvpx-vp9"
-        if _codec == "5": 
-            return Prompt.ask("Enter custom video encoder (e.g. libwebp)")
-        return "libx264"
-
-    @staticmethod
-    def _parse_codec_audio(_codec: str) -> str:
-        # Used internally to parse user's request on codec
-        if _codec == "1": 
-            return "aac"
-        if _codec == "2": 
-            return "libmp3lame"
-        if _codec == "3": 
-            return "alac"
-        if _codec == "4": 
-            return "flac"
-        if _codec == "5": 
-            return Prompt.ask("Enter custom audio encoder (e.g. libtwolame)")
-        return "libx264"
-
-    @staticmethod
-    def _parse_framerate(_framerate: str) -> str:
-        # Used internally to parse user's request on framerate
-        if _framerate == "1": 
-            return "24"
-        if _framerate == "2": 
-            return "30"
-        if _framerate == "3": 
-            return "50"
-        if _framerate == "4": 
-            return "60"
-        if _framerate == "5": 
-            return Prompt.ask("Enter custom framerate (e.g. 23.976)")
-        return "24"
-
-    @staticmethod
-    def _parse_samplerate(_samplerate: str) -> str:
-        # Used internally to parse user's request on samplerate
-        if _samplerate == "1": 
-            return "16000"
-        if _samplerate == "2": 
-            return "44100"
-        if _samplerate == "3": 
-            return "48000"
-        if _samplerate == "4": 
-            return "96000"
-        if _samplerate == "5": 
-            return Prompt.ask("Enter custom samplerate (e.g. 22050)")
-        return "48000"
-
-    @staticmethod
-    def _parse_bitrate(_bitrate: str) -> str:
-        # Used internally to parse user's request on bitrate
-        if _bitrate == "1": 
-            return "96k"
-        if _bitrate == "2": 
-            return "128k"
-        if _bitrate == "3": 
-            return "192k"
-        if _bitrate == "4": 
-            return "320k"
-        if _bitrate == "5": 
-            return Prompt.ask("Enter custom bitrate (e.g. 160)")
-        return "192k"
+        
+    def _ask_question(self, _question: dict) -> dict:
+        """Asks the user a question
+        
+        + Args -
+            Question: a dictionary input of the different properties of the question
+            
+        + Returns -
+            Dictionary: containing the option (key) and the user's input (value)
+        """
+        _ret: dict = {}
+        
+        if _question["option"][0] == "-":                     # The python-ffmpeg api inserts a dash (-) symbol 
+            _question["option"] = _question["option"][1:]     # for you, so we have to get rid of the dash.
+            
+        if _question["type"] == "choice":
+            _custom_index = len(_question["choices"]) + 0
+            _none_index = len(_question["choices"]) + 1
+            _total_length = len(_question["choices"]) + 2
+            
+            self.console.print()
+            self.console.print(" - ", _question["title"])
+            self._print_choices(
+                _question["choices"],
+                _question["default"]
+            )
+            
+            _answer_index = Prompt.ask(
+                " -  Select an option", 
+                choices = [str(i + 1) for i in range(_total_length)], 
+                default = str(_question["default"])
+            )
+            
+            _answer_index = int(_answer_index) - 1
+            if _answer_index == _none_index:
+                self.console.print(" -  Option removed from ffmpeg arguments")
+                return _ret
+            if _answer_index == _custom_index:
+                _ret[_question["option"]] = Prompt.ask(" -  Custom value")
+                return _ret
+            
+            _ret[_question["option"]] = _question["choices"][_answer_index][1]
+            return _ret
+                
+        if _question["type"] == "input":
+            self.console.print()
+            _answer_index = Prompt.ask(
+                _question["title"]
+            )
+            
+            _ret[_question["option"]] = _answer_index
+            return _ret
+            
+        return _ret
+        
+    def _print_choices(self, _choices: list[tuple], _default: int) -> None:
+        """Prints the choices from a list of tuples
+        
+        + Args -
+            Choices: a list of tuples contiaining the different options to display
+            Default: The index to mark as 'default'
+        """
+        _custom_index = len(_choices) + 1
+        _none_index = len(_choices) + 2
+        
+        for index, value in enumerate(_choices):
+            _number = index + 1
+            _line = value[0]
+            _line = f"[{_number}] {_line}"
+            if _default == index + 1:
+                _line = _line + " (default)"
+            self.console.print(_line)
+            
+        self.console.print(f"[{_custom_index}] Custom value")
+        self.console.print(f"[{_none_index}] Remove option")
+        return
         
     @staticmethod
-    def _parse_commands(_commands: str) -> dict:
-        # Used internally to parse user's request on custom commands
+    def _parse_custom_command(_commands: str) -> dict:
+        """Parses the optional commands that the user enters into ffmpeg
+        
+        + Args -
+            Commands: a string of commands that the user enters
+        
+        + Returns -
+            Dictionary: a dictionary containing the options (keys) and the user's
+            value (values)
+            
+        + Notes -
+            This method is not extensively tested and is not guaranteed to work
+            in all scenarios. Exercise caution when using the custom commands
+        """
         _ret: dict = {}
+        
         if _commands == "":
             return _ret
             
@@ -493,8 +472,8 @@ class MetadataLogger():
         """Prints the contents of a metadata dictionary from ffprobe
         
         + Args -
-            Dictionary: representing the however many streams of data from
-            ffprobe
+            Metadata: a dictionary representing the however many streams of data 
+            from ffprobe
             
         + Returns - 
             None: the function outputs the information of the different streams
@@ -509,7 +488,7 @@ class MetadataLogger():
             elif _stream["codec_type"] == "audio":
                 MetadataLogger.log_audio_metadata(_stream)
             else:
-                Console().log(f"[bold]- Auxiliary (source stream {_stream["codec_type"]})")
+                Console().log(f"[bold]- Auxiliary (stream type '{_stream["codec_type"]}')")
                 
         Console().log(f"[Info] End source info ", highlight = False)
         return
@@ -519,24 +498,25 @@ class MetadataLogger():
         """Logs the video metadata of a stream onto the console
         
         + Args -
-            Dictionary: representing a video stream provided by ffprobe
+            Video_stream: a dictionary representing a video stream provided by 
+            ffprobe
         """
         
         # The notorious 'one liners', except 14 times
         try: _idx: str = f"{_video_stream['index']}"
-        except: _idx: str = f"[yellow]-"
+        except: _idx: str = f"[yellow]--"
         try: _col: str = f"{_video_stream['color_space']}"
-        except: _col: str = f"[yellow]-"
+        except: _col: str = f"[yellow]--"
         try: _fmt: str = f"{_video_stream['codec_long_name']}"
-        except: _fmt: str = f"[yellow]-"
+        except: _fmt: str = f"[yellow]--"
         try: _res: str = f"{_video_stream['width']}x{_video_stream['height']}"
-        except: _res: str = f"[yellow]-"
+        except: _res: str = f"[yellow]--"
         try: _fps: str = f"{MetadataLogger._get_framerate(_video_stream['avg_frame_rate'])}"
-        except: _fps: str = f"[yellow]-"
+        except: _fps: str = f"[yellow]--"
         try: _dur: str = f"{round(float(_video_stream['duration']), 2)}"
-        except: _dur: str = f"[yellow]-"
+        except: _dur: str = f"[yellow]--"
         try: _fra: str = f"{round(float(_fps) * float(_dur), 2)}"
-        except: _fra: str = f"[yellow]-"
+        except: _fra: str = f"[yellow]--"
         
         Console().log(f"[bold]- Video (source stream {_idx})")
         Console().log(f"|    Video codec      : {_fmt}", highlight = False)
@@ -552,24 +532,25 @@ class MetadataLogger():
         """Logs the audio metadata of a stream
         
         + Args -
-            Dictionary: representing a audio stream provided by ffprobe
+            Audio_stream: a dictionary representing an audio stream provided by 
+            ffprobe
         """
         
         # The notorious 'one liners', except 14 times
         try: _idx: str = f"{_audio_stream['index']}"
-        except: _idx: str = f"[yellow]-"
+        except: _idx: str = f"[yellow]--"
         try: _fmt: str = f"{_audio_stream['codec_long_name']}"
-        except: _fmt: str = f"[yellow]-"
+        except: _fmt: str = f"[yellow]--"
         try: _prf: str = f"{_audio_stream['profile']}"
-        except: _prf: str = f"[yellow]-"
+        except: _prf: str = f"[yellow]--"
         try: _smp: str = f"{_audio_stream['sample_rate']}"
-        except: _smp: str = f"[yellow]-"
+        except: _smp: str = f"[yellow]--"
         try: _chn: str = f"{_audio_stream['channels']}"
-        except: _chn: str = f"[yellow]-"
+        except: _chn: str = f"[yellow]--"
         try: _lay: str = f"{_audio_stream['channel_layout'].capitalize()}"
-        except: _lay: str = f"[yellow]-"
+        except: _lay: str = f"[yellow]--"
         try: _btr: str = f"{int(_audio_stream['bit_rate']) // 1000}"
-        except: _btr: str = f"[yellow]-"
+        except: _btr: str = f"[yellow]--"
         
         Console().log(f"[bold]- Audio (source stream {_idx})")
         Console().log(f"|    Audio codec      : {_fmt}", highlight = False)
@@ -609,8 +590,8 @@ class MetadataManager():
         """Initializes an instance of `MediaManager`
 
         + Args -
-            _input_path: the path of the media file that the object will represent
-            _debug: whether to use debug mode or not (debug/verbose mode causes
+            Input_path: the path of the media file that the object will represent
+            Debug: whether to use debug mode or not (debug/verbose mode causes
             the program to output ffmpeg's logs in addition to the program's own
             logs)
         """
@@ -668,7 +649,7 @@ class MetadataManager():
         _ret: int = -1
         for _stream in self.metadata["streams"]:
             if _stream["codec_type"] == "audio":
-                self.console.log(f"[Info] First audio stream found (stream {_stream["index"]})")
+                self.console.log(f"[Info] Using first audio stream found (stream {_stream["index"]})")
                 _ret = _stream["index"]
                 break
         
@@ -687,7 +668,7 @@ class MetadataManager():
         _ret: int = -1
         for _stream in self.metadata["streams"]:
             if _stream["codec_type"] == "video":
-                self.console.log(f"[Info] First video stream found (stream {_stream["index"]})")
+                self.console.log(f"[Info] Using first video stream found (stream {_stream["index"]})")
                 _ret = _stream["index"]
                 break
         
@@ -742,7 +723,7 @@ class Program():
         self.console = Console(highlight = False)
         self.error_console = Console(stderr = True, style = "red")
         
-        self.debug = False
+        self.verbose = False
         self.default = False
         self.check_ffmpeg()
         
@@ -752,15 +733,12 @@ class Program():
             _error = str(e)
             self.error_console.log(f"[Error] Program().parse_args() failed: {_error}")
             self.error_console.log(f"- Mpeg-convert may not function correctly")
-            self.error_console.log(f"- Proceed with caution")
-            self.error_console.log()
 
-        if self.debug: 
+        if self.verbose: 
             self.console.log(f"[yellow][Warning] Using debug mode")
         if self.default: 
             self.console.log(f"[yellow][Warning] Using all default options")
             
-        self.console.log("[Info] Initialized an instance of mpeg-convert")
         return
 
     def parse_args(self) -> None:
@@ -810,9 +788,20 @@ class Program():
 
         self.input = _args.input
         self.output = _args.output
-        self.debug = _args.verbose
+        self.verbose = _args.verbose
         self.default = _args.default
 
+        _raw_args = [
+            f"--verbose={str(self.verbose).lower()}", 
+            f"--default={str(self.default).lower()}", 
+            f"{self.input}", 
+            f"{self.output}"
+        ]
+        
+        self.console.log(
+            f"[Info] Received command-line arguments: \n{_raw_args}"
+        )
+        
         _cwd = getcwd()
         _cwd = _cwd + "/"
         if self.input[0] != "/" and self.input[0] != "~":
@@ -855,7 +844,7 @@ class Program():
         determine the progress, audio files (which have no video frames)
         will cause the program's progress bar to be indeterminate
         """
-        self.media       = MetadataManager(self.input, self.debug)
+        self.media       = MetadataManager(self.input, self.verbose)
         self.framerate   = None
         self.total_secs  = None
         self.total_frame = None
@@ -873,7 +862,6 @@ class Program():
         # MPEG-Convert has only been tested for a max
         # of 3 streams (video, audio, subtitles)
         if len(self.media.metadata['streams']) > 3:
-            self.console.log()
             self.console.log(f"[yellow][Warning] Multiple video/audio streams detected")
             self.console.log(f"- Mpeg-convert has not been tested for multiple video/audio streams")
             self.console.log(f"- You are entering unknown territory if you proceed! ")
@@ -888,6 +876,7 @@ class Program():
         )
         
         self.options = self.options_handler.ask_encode_options(self.default)
+        self.console.log(f"[Info] Finished asking encoding options")
         return
 
     def convert(self) -> None:
@@ -914,6 +903,7 @@ class Program():
             TextColumn("[progress.description]{task.description}"),
             BarColumn(),
             TaskProgressColumn(text_format = "[progress.percentage]{task.percentage:>0.1f}% ({task.completed}/{task.total} frames)"),
+            TextColumn("eta", style = "cyan"),
             TimeRemainingColumn(elapsed_when_finished = True),
             console = self.console,
             transient = True
@@ -931,7 +921,7 @@ class Program():
 
             @self.instance.on("stderr")
             def ffmpeg_out(_Msg: str) -> None:
-                if self.debug:
+                if self.verbose:
                     self.console.log(f"[FFmpeg] {_Msg}")
 
             _task = _bar.add_task("[green]Transcoding file...", total = None)
@@ -944,7 +934,7 @@ class Program():
         conversions, catches errors should they arise.
         """
         
-        self.console.log(f"[Info] Received (parsed) command-line arguments: '{self.input}' and '{self.output}'")
+        self.console.log(f"[Info] Received (parsed) file paths: \n'{self.input}' and '{self.output}'")
 
         try:
             self.process()
@@ -955,8 +945,8 @@ class Program():
                 _ffmpeg_args = _ffmpeg_args + _arg + " "
 
             self.error_console.log(f"[Fatal] An ffmpeg exception has occured!")
-            self.error_console.log(f"[red]- Error message from ffmpeg: [white]{_error.message.lower()}", highlight = False)
-            self.error_console.log(f"[red]- Arguments to execute ffmpeg: [white]{_ffmpeg_args.lower()}", highlight = False)
+            self.error_console.log(f"- Error message from ffmpeg: [white]{_error.message.lower()}", highlight = False)
+            self.error_console.log(f"- Arguments to execute ffmpeg: [white]{_ffmpeg_args.lower()}", highlight = False)
             self.error_console.log(f"- Use the '-v' or '--verbose' option to hear ffmpeg output", highlight = False)
             self.error_console.log(f"- Common pitfalls: ", highlight = False)
             self.error_console.log(f"  * Does the output file have an extension?", highlight = False)
@@ -974,7 +964,16 @@ class Program():
         
     @staticmethod
     def _readable_size(_path: str, _decimal_point = 2) -> str:
-        # Internal method used to calculate file size
+        """Calculates the size of a particular file on disk and returns the
+        size in a human-readable fashion
+        
+        + Args - 
+            Path: a path to a file to calculate the size
+            Decimal_point: the decimal point to truncate the size to
+            
+        + Returns -
+            String: a string of a human-readable size
+        """
         size: float = path.getsize(_path)
         
         for i in ["bytes", "kb", "mb", "gb", "tb", "pb"]:
@@ -994,5 +993,5 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         Console().print()
         Console().log("[yellow][Warning] Program received KeyboardInterrupt...")
-        Console().log("[yellow][Warning] Force quitting with os._exit()...")
-        _exit(0)   # Force terminate all threads
+        Console().log("[yellow][Warning] Force quitting with [/yellow]os._exit()...")
+        _exit(0)    # Force terminate all threads
