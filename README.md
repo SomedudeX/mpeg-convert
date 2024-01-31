@@ -1,9 +1,17 @@
 ## MPEG-Convert
-A customizable erminal-based [Python](https://www.python.org/downloads/) wrapper for [FFmpeg](https://ffmpeg.org/download.html) that makes converting between different formats/codecs a whole lot easier for the end-user
 
-This wrapper makes using the FFmpeg engine to convert between different video/audio formats a lot easier for the folks who doesn't want to memorize twenty options to use FFmpeg. This program is not, however, a complete replacement for FFmpeg in any way. For that purpose, you should look look into other software such as [Handbrake](https://handbrake.fr/) or [DaVinci Resolve](https://www.blackmagicdesign.com/products/davinciresolve). 
+A highly customizable<sup>[1](#Customizing)</sup> terminal-based [Python](https://www.python.org/downloads/) wrapper for [FFmpeg](https://ffmpeg.org/download.html) that makes converting between different formats/codecs a whole lot easier for the end-user. 
+
+FFmpeg is a powerful multimedia tool, but its many options can be overwhelming for new users. This wrapper aims to simplify the process of working with the FFmpeg engine to convert between different video/audio formats for the folks who doesn't want to memorize twenty options to use FFmpeg. This program is not, however, a complete replacement for FFmpeg in any way. For that purpose, you should look look into other software such as [Handbrake](https://handbrake.fr/) or [DaVinci Resolve](https://www.blackmagicdesign.com/products/davinciresolve). 
 
 Additionally, this tool has been hacked together in a couple of weeks, meaning that some of the finer details has not been fleshed out or extensively tested — expect some rough corners during use. This tool also has not been tested or designed for multiple video or audio streams. 
+
+## Features
+
+* **Simplified commands**: MPEG-Convert provides a straightforward interface for commonly used FFmpeg functionalities, making it easy for both beginners and experienced users to perform tasks such as codec conversion, audio extraction, file compression, and much more
+
+* **Configurability**: While MPEG-Convert is designed for simplicity, it also provides room for customization. Users can tweak advanced settings by specifying additional options in the script or during script execution, ensuring flexibility for more sophisticated multimedia processing needs.
+
 
 ![demo](https://github.com/SomedudeX/MPEG-Convert/assets/101906945/d69c68b0-4122-4ebc-a6fb-3de50448dcd0)
 
@@ -118,7 +126,12 @@ An example of a custom question is below:
 
 ## Resources
 
+Contributions are welcome! If you encounter issues or have suggestions for improvements, please feel free to open an issue or submit a pull request.
+
  - [Demo](https://github.com/SomedudeX/MPEG-Convert/raw/main/Demo/demo.mov)
+ - [License](https://raw.githubusercontent.com/SomedudeX/MPEG-Convert/main/LICENSE.md)
  - [Releases](https://github.com/SomedudeX/MPEG-Convert/releases)
+
+
 
 --
