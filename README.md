@@ -84,7 +84,7 @@ An example of a custom question is below:
         "choices": [
             ("Faster/lower quality", "veryfast"),
             ("Normal/medium quality", "medium"),
-            ("Slower/best quality", "veryslow)
+            ("Slower/best quality", "veryslow")
         ]
     }
 ...
