@@ -20,7 +20,7 @@ eval "$(curl -s https://raw.githubusercontent.com/SomedudeX/MPEG-Convert/main/in
 > [!IMPORTANT]
 > For macOS users, make sure to go into the script and do a global find-and-replace from `libx264` to `h264_videotoolbox` and from `libx265` to `hevc_videotoolbox`.
 >
-> This is necessary because the regular `H.264` and `H.265` encoder is horribly slow on macOS. By using Apple's own encoders, you can get much faster encoding results.
+> This is necessary because the regular `libx264` and `libx265` encoder is horribly slow on macOS. By using Apple's own encoders, you can get much faster encoding results.
 
 #### Manual
 
@@ -46,7 +46,7 @@ eval "$(curl -s https://raw.githubusercontent.com/SomedudeX/MPEG-Convert/main/in
 You may need to `sudo chmod +x` the script in order to run it. Additionally, if you would like to run this script from anywhere in the terminal, you can add the script's path to your environment's `$PATH` variable. 
 
 > [!WARNING]
-> The manual installation instructions are not tested for Windows. 
+> The manual installation instructions are designed for Unix-based systems and are not tested for Windows. 
 
 ## Customizing
 
