@@ -31,7 +31,7 @@ curl -s https://raw.githubusercontent.com/SomedudeX/MPEG-Convert/main/App/mpeg-c
 echo " - Received mpeg-convert.py"
 
 echo " - Installing dependencies with pip3: \n   * python-ffmpeg\n   * rich"
-python -m pip install -r requirements.txt
+python -m pip install -r requirements.txt >/dev/null
 
 echo " - Cleaning up"
 rm requirements.txt
@@ -39,6 +39,6 @@ rm requirements.txt
 echo " - Installation script finished"
 echo " - Notes: \n       You may want to 'sudo chmod +x' the file"
 
-echo "       Script located in $(eval pwd)/mpeg-convert.py"
+echo "       Script located in $(eval pwd)/mpeg-convert.py\n"
 
 
