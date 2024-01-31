@@ -110,4 +110,9 @@ An example of a custom question is below:
     - `ALAC` with `.m4a`
   + Is the encoder installed on your system?
 
+## Resources
+
+ - [Demo](https://github.com/SomedudeX/MPEG-Convert/raw/main/Demo/demo.mov)
+ - [Releases](https://github.com/SomedudeX/MPEG-Convert/releases)
+
 --
