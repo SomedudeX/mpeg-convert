@@ -1,7 +1,7 @@
 ## MPEG-Convert
 A terminal-based [Python](https://www.python.org/downloads/) wrapper for [FFmpeg](https://ffmpeg.org/download.html) that makes converting between different formats/codecs a whole lot easier for the end-user
 
-This wrapper makes using the FFmpeg engine to convert between different video/audio formats a lot easier for the folks who doesn't want to memorize twenty options to use FFmpeg. This program is not, however, a complete replacement for FFmpeg in any way. For that purpose, you should look look into other software such as Handbrake or DaVinci Resolve. 
+This wrapper makes using the FFmpeg engine to convert between different video/audio formats a lot easier for the folks who doesn't want to memorize twenty options to use FFmpeg. This program is not, however, a complete replacement for FFmpeg in any way. For that purpose, you should look look into other software such as [Handbrake](https://handbrake.fr/) or [DaVinci Resolve](https://www.blackmagicdesign.com/products/davinciresolve). 
 
 Additionally, this tool has been hacked together in a couple of weeks, meaning that some of the finer details has not been fleshed out or extensively tested — expect some rough corners during use. This tool also has not been tested or designed for multiple video or audio streams. 
 
@@ -9,7 +9,20 @@ Additionally, this tool has been hacked together in a couple of weeks, meaning t
 
 ## Installation 
 
-Make sure you have Python 3 and FFmpeg installed.
+Make sure you have Python 3 and FFmpeg installed. 
+
+#### Automatic
+
+```bash
+eval "$(curl -s https://raw.githubusercontent.com/SomedudeX/MPEG-Convert/main/install.sh)"
+```
+
+> [!IMPORTANT]
+> For macOS users, make sure to go into the script and do a global find-and-replace of `libx264` to `h264_videotoolbox` and `libx265` to `hevc_videotoolbox`.
+>
+> This is very much recommended because the regular libx264 encoder is horribly slow on macOS, so by using Apple's own encoders, you can get much faster encoding results.
+
+#### Manual
 
 * Clone this repository
   
@@ -30,12 +43,7 @@ Make sure you have Python 3 and FFmpeg installed.
   ./App/mpeg-convert.py --help
   ```
   
-You may need to `sudo chmod +x` the script in order to run it. Additionally, if you would like to run this script from anywhere in the terminal, you can add it to your PATH variable. 
-
-> [!IMPORTANT]
-> For macOS users, make sure to go into the script and do a global find-and-replace of `libx264` to `h264_videotoolbox` and `libx265` to `hevc_videotoolbox`.
->
-> This is very much recommended because the regular libx264 encoder is horribly slow on macOS, so by using Apple's own encoders, you can get much faster encoding results.
+You may need to `sudo chmod +x` the script in order to run it. Additionally, if you would like to run this script from anywhere in the terminal, you can add it to your `$PATH` variable. 
 
 ## Customizing
 
