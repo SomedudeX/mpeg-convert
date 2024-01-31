@@ -45,7 +45,7 @@ eval "$(curl -s https://raw.githubusercontent.com/SomedudeX/MPEG-Convert/main/in
   
 You may need to `sudo chmod +x` the script in order to run it. Additionally, if you would like to run this script from anywhere in the terminal, you can add the script's path to your environment's `$PATH` variable. 
 
-> [!NOTE]
+> [!WARNING]
 > The manual installation instructions are not tested for Windows. 
 
 ## Customizing
@@ -73,6 +73,9 @@ The two variables represents the list of questions asked during video options an
  * Valid values:
    + **`choice`**: Multiple choice
    + **`input`**: Input field
+  
+> [!NOTE]
+> MPEG-Convert will automatically append an option for `custom value` and `remove option` if a question type is `choice`.
 
 **`title`**: The text shown to the console during the execution of the program
 
