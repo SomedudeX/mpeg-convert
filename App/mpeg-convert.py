@@ -29,7 +29,7 @@
 # can customize these options to your liking. For more information/documentation
 # on how to customize these questions and parameters, go to the following link:
 #
-# https://github.com/SomedudeX/MPEG-Convert/tree/main
+# https://github.com/SomedudeX/MPEG-Convert/tree/main?tab=readme-ov-file#customizing
 
 
 VIDEO_OPTIONS = [
@@ -66,8 +66,8 @@ VIDEO_OPTIONS = [
         "option": "-c:v",
         "default": 2,
         "choices": [
-            ("H.264", "h264_videotoolbox"),       # macOS: change 'libx264' to 'h264_videotoolbox'
-            ("H.265", "hevc_videotoolbox"),       # macOS: change 'libx265' to 'hevc_videotoolbox'
+            ("H.264", "libx264"),       # macOS: change 'libx264' to 'h264_videotoolbox'
+            ("H.265", "libx265"),       # macOS: change 'libx265' to 'hevc_videotoolbox'
             ("AV1", "libsvtav1"),
             ("VP9", "libvpx-vp9"),
         ]
@@ -135,7 +135,7 @@ AUDIO_OPTIONS = [
 DEFAULT_OPTIONS = {
     "r": "24",
     "s": "1920x1080",
-    "c:v": "h264_videotoolbox",       # macOS: change 'libx264' to 'h264_videotoolbox'
+    "c:v": "libx264",       # macOS: change 'libx264' to 'h264_videotoolbox'
     "c:a": "libmp3lame", 
     "b:a": "192k", 
     "ar": "44100", 
