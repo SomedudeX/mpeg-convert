@@ -26,12 +26,14 @@ echo " - Receiving dependency list for mpeg-convert (requirements.txt)"
 curl -s https://raw.githubusercontent.com/SomedudeX/MPEG-Convert/v1.0.0/requirements.txt > requirements.txt
 echo " - Received requirements.txt"
 
-echo " - Installing dependencies with pip3: \n   * python-ffmpeg\n   * rich"
-python -m pip install -r requirements.txt 2>&1 > /dev/null &;
-
 echo " - Receiving script (mpeg-convert.py)"
 curl -s https://raw.githubusercontent.com/SomedudeX/MPEG-Convert/main/App/mpeg-convert.py > mpeg-convert.py
 echo " - Received mpeg-convert.py"
+
+echo " - Installing dependencies with pip3: \n   * python-ffmpeg\n   * rich"
+python -m pip install -r requirements.txt 2>&1 > /dev/null &;
+
+wait
 
 echo " - Cleaning up"
 rm requirements.txt
