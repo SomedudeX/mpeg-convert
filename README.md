@@ -112,6 +112,8 @@ An example of a custom question is below:
 ]
 ```
 
+This format also applies to existing questions as well.
+
 ## Troubleshooting
 
 * Do you have python installed?
