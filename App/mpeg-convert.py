@@ -144,7 +144,9 @@ DEFAULT_OPTIONS = {
 }
     
 
+import sys
 import json
+import platform
 import argparse
 
 from os import path
@@ -176,6 +178,22 @@ ARGPARSE_EPILOG = (
     to convert to/from; you do not need to specify anything.\
     "
 )
+
+
+class ProgramVersion():
+    """Represents the version of the system version"""
+    
+    def __init__(
+        self,
+        _major: int,
+        _minor: int,
+        _patch: int
+    ) -> None:
+        """Initializes a version object"""
+        self.MAJOR = _major
+        self.MINOR = _minor
+        self.PATCH = _patch
+        
         
 
 class OptionsHandler():
@@ -728,6 +746,8 @@ class Program():
         parsing the command-line arguments, and verifying thatthe installation
         of ffmpeg is discoverable
         """
+        self.VERSION = ProgramVersion(1, 1, 4)
+        
         self.console = Console(highlight = False)
         self.error_console = Console(stderr = True, style = "red")
         
@@ -762,6 +782,11 @@ class Program():
         
             Commands can be listed with the option `-h` or `--help`. 
         """
+
+        if sys.argv[1] == "--version":
+            self.print_version()
+            raise SystemExit(0)
+            
         _parser = argparse.ArgumentParser(
             description = str(self.__doc__).lower(),
             usage = "mpeg-convert [options] <file.in> <file.out>",
@@ -796,6 +821,13 @@ class Program():
             help = "use all default settings for encoding"
         )
 
+        _parser.add_argument(
+            "--version",
+            action = "store_true",
+            default = False,
+            help = "shows the version and exit"
+        )
+
         _args = _parser.parse_args()
 
         self.input = _args.input
@@ -822,6 +854,17 @@ class Program():
             self.output = _cwd + self.output
             
         return
+
+    def print_version(self):
+        """Prints the version information to the console"""
+        _program_version: str = f"{self.VERSION.MAJOR}.{self.VERSION.MINOR}.{self.VERSION.PATCH}"
+        _python_version: str = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+        _platform: str = f"{sys.platform.capitalize()} ({platform.architecture()[0]} {platform.machine()})"
+        
+        self.console.print(f"Program  : v{_program_version}")
+        self.console.print(f"Python   : {_python_version}")
+        self.console.print(f"Platform : {_platform}")
+        
 
     def check_ffmpeg(self):
         """Checks whether FFmpeg is installed and on the system path
