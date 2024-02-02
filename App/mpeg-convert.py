@@ -384,7 +384,7 @@ class OptionsHandler():
         if _question["type"] == "input":
             self.console.print()
             _answer_index = Prompt.ask(
-                _question["title"]
+                " -  " + _question["title"]
             )
             
             _ret[_question["option"]] = _answer_index
