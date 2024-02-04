@@ -167,16 +167,28 @@ try:
 except ModuleNotFoundError as e:
     _error = str(e)
     print(f" [Fatal] {_error.capitalize()}")
-    print(f" - Make sure you install all required modules by using `pip`")
-    print(f" - Exiting...")
+    print(f" - Make sure you install all required modules by using 'pip'")
+    print(f" - Exiting mpeg-convert.py...")
     raise SystemExit(-1)
     
     
-ARGPARSE_EPILOG = (
-    "custom encoders can be listed by `ffmpeg -codecs`. additionally,\
-    ffmpeg will automatically detect the file extensions/containers\
-    to convert to/from; you do not need to specify anything.\
-    "
+HELP_TEXT = (
+"Usage: mpeg-convert.py [options] <file.in> <file.out>                  \n\
+                                                                        \n\
+Required args:                                                          \n\
+    <file.in>       The path to the file to convert from                \n\
+    <file.out>      The path to the file to output to                   \n\
+                                                                        \n\
+Optional args:                                                          \n\
+    --version       Prints the version information to the console       \n\
+    -h  --help      Prints this help text and exits                     \n\
+    -v  --verbose   Outputs all ffmpeg log to the console               \n\
+    -d  --default   Use all default options (customizable from script)  \n\
+                                                                        \n\
+Custom encoders can be listed by 'ffmpeg -codecs'. Additionally,        \n\
+FFmpeg will automatically detect the file extensions/containers         \n\
+to convert to/from; you do not need to specify anything.                \
+"
 )
 
 
@@ -187,12 +199,14 @@ class ProgramVersion():
         self,
         _major: int,
         _minor: int,
-        _patch: int
+        _patch: int,
+        _notes: str
     ) -> None:
         """Initializes a version object"""
         self.MAJOR = _major
         self.MINOR = _minor
         self.PATCH = _patch
+        self.NOTES = _notes
         
         
 
@@ -506,7 +520,7 @@ class MetadataLogger():
             detected onto the console. 
         """
         _metadata = _metadata["streams"]
-        Console().log(f"[Info] Retrieved source info: ", highlight = False)
+        Console().log(f"[Info] Start source info: ", highlight = False)
         
         for _stream in _metadata:
             if _stream["codec_type"] == "video":
@@ -746,7 +760,7 @@ class Program():
         parsing the command-line arguments, and verifying thatthe installation
         of ffmpeg is discoverable
         """
-        self.VERSION = ProgramVersion(1, 1, 4)
+        self.VERSION = ProgramVersion(1, 1, 3, "rc-1")
         
         self.console = Console(highlight = False)
         self.error_console = Console(stderr = True, style = "red")
@@ -756,11 +770,11 @@ class Program():
         
         try: 
             self.parse_args()
-        except Exception as e: 
+        except Exception as e:
             _error = str(e)
-            self.error_console.log(f"[Error] Program().parse_args() failed: {_error}")
-            self.error_console.log(f"- Mpeg-convert usage: mpeg-convert [options] <file.in> <file.out>")
-            self.error_console.log(f"- Program terminating due to inapt command-line arguments")
+            self.error_console.log(f"[Error] Program().parse_args() failed: {_error}", highlight = False)
+            self.error_console.log(f"- Mpeg-convert usage: mpeg-convert [options] <file.in> <file.out>", highlight = False)
+            self.error_console.log(f"- Program terminating due to inapt command-line arguments", highlight = False)
             raise SystemExit(1)
 
         if self.verbose: 
@@ -782,59 +796,51 @@ class Program():
         
             Commands can be listed with the option `-h` or `--help`. 
         """
-
-        if sys.argv[1] == "--version":
-            self.print_version()
+        
+        _input = ""
+        _output = ""
+        _verbose = False
+        _default = False
+        
+        if len(sys.argv) == 1:
+            self.print_help()
             raise SystemExit(0)
-            
-        _parser = argparse.ArgumentParser(
-            description = str(self.__doc__).lower(),
-            usage = "mpeg-convert [options] <file.in> <file.out>",
-            epilog = ARGPARSE_EPILOG,
-            argument_default = argparse.SUPPRESS,
-            exit_on_error = True
-        )
+        
+        _is_flag = True
+        for index, value in enumerate(sys.argv):
+            if index == 0:
+                continue
+            if value[0] != "-":
+                _is_flag = False
+            if _is_flag:
+                if value == "--version":
+                    self.print_version()
+                    raise SystemExit(0)
+                elif value == "-h" or value == "--help":
+                    self.print_help()
+                    raise SystemExit(0)
+                elif value == "-d" or value == "--default":
+                    _default = True
+                elif value == "-v" or value == "--verbose":
+                    _verbose = True
+                elif value == "-dv" or "-vd":
+                    _default = True
+                    _verbose = True
+                else:
+                    raise Exception(f"unrecognized option '{value}'")
+            else: 
+                if len(_input) == 0:
+                    _input = value
+                elif len(_output) == 0:
+                    _output = value
+                else:
+                    raise Exception(f"unexpected trailing argument '{value}'")
 
-        _parser.add_argument(
-            "input", 
-            type = str, 
-            help = "the input file to convert from"
-        )
-
-        _parser.add_argument(
-            "output", 
-            type = str, 
-            help = "the output file to convert to"
-        )
-
-        _parser.add_argument(
-            "-v", "--verbose", 
-            action = "store_true", 
-            default = False,
-            help = "outputs all ffmpeg logs to the console"
-        )
-
-        _parser.add_argument(
-            "-d", "--default", 
-            action = "store_true", 
-            default = False,
-            help = "use all default settings for encoding"
-        )
-
-        _parser.add_argument(
-            "--version",
-            action = "store_true",
-            default = False,
-            help = "shows the version and exit"
-        )
-
-        _args = _parser.parse_args()
-
-        self.input = _args.input
-        self.output = _args.output
-        self.verbose = _args.verbose
-        self.default = _args.default
-
+        self.input = _input
+        self.output = _output
+        self.verbose = _verbose
+        self.default = _default
+        
         _raw_args = [
             f"--verbose={str(self.verbose).lower()}", 
             f"--default={str(self.default).lower()}", 
@@ -845,6 +851,13 @@ class Program():
         self.console.log(
             f"[Info] Received command-line arguments: \n{_raw_args}"
         )
+        
+        if len(_input) == 0 or len(_output) == 0:
+            raise Exception(f"input/output file not specified")
+        if not path.isfile(_input):
+            raise Exception(f"input path '{_input}' is invalid")
+        if not path.isfile(_output):
+            raise Exception(f"output path '{_output}' is invalid")
         
         _cwd = getcwd()
         _cwd = _cwd + "/"
@@ -857,7 +870,7 @@ class Program():
 
     def print_version(self):
         """Prints the version information to the console"""
-        _program_version: str = f"{self.VERSION.MAJOR}.{self.VERSION.MINOR}.{self.VERSION.PATCH}"
+        _program_version: str = f"{self.VERSION.MAJOR}.{self.VERSION.MINOR}.{self.VERSION.PATCH}-{self.VERSION.NOTES}"
         _python_version: str = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
         _platform: str = f"{sys.platform.capitalize()} ({platform.architecture()[0]} {platform.machine()})"
         
@@ -865,6 +878,9 @@ class Program():
         self.console.print(f"Python   : {_python_version}")
         self.console.print(f"Platform : {_platform}")
         
+    def print_help(self):
+        """Prints the help usage to the console"""
+        self.console.print(HELP_TEXT)
 
     def check_ffmpeg(self):
         """Checks whether FFmpeg is installed and on the system path
@@ -884,7 +900,7 @@ class Program():
                 "[Fatal] Program().check_ffmpeg() failed: could not find FFmpeg installation in path",
                 "- Make sure FFmpeg is installed and is in path before launching this script"
             )
-
+            
             raise SystemExit(127)
         return
 
@@ -1001,21 +1017,19 @@ class Program():
                 _ffmpeg_args = _ffmpeg_args + _arg + " "
 
             self.error_console.log(f"[Fatal] An ffmpeg exception has occured!")
-            self.error_console.log(f"- Error message from ffmpeg: [white]{_error.message.lower()}", highlight = False)
-            self.error_console.log(f"- Arguments to execute ffmpeg: [white]{_ffmpeg_args.lower()}", highlight = False)
+            self.error_console.log(f"- Error message from ffmpeg: [white]{_error.message}", highlight = False)
+            self.error_console.log(f"- Arguments to execute ffmpeg: [white]{_ffmpeg_args}", highlight = False)
             self.error_console.log(f"- Use the '-v' or '--verbose' option to hear ffmpeg output", highlight = False)
             self.error_console.log(f"- Common pitfalls: ", highlight = False)
             self.error_console.log(f"  * Does the output file have an extension?", highlight = False)
             self.error_console.log(f"  * Does the extension match the codec?", highlight = False)
             self.error_console.log(f"  * Is the encoder installed on your system?", highlight = False)
-            self.error_console.log(f"[Info] Exiting mpeg-convert...")
             raise SystemExit(1)
 
         self.console.log(f"[green][Info] Succesfully executed mpeg-convert")
         self.console.log(f"- Took {round(time() - self.start_time, 2)} seconds to convert {self.total_frame} frames")
         self.console.log(f"- Took {self._readable_size(self.output)} mb of space")
         self.console.log(f"- Output file saved to '{self.output}'")
-        self.console.log(f"[Info] Safely exiting mpeg-convert...")
         return
         
     @staticmethod
@@ -1046,6 +1060,9 @@ if __name__ == "__main__":
         instance = Program()
         instance.run()
         raise SystemExit(0)
+    except SystemExit as e:
+        Console().log(f"[Info] Mpeg-convert.py terminated with exit code {e}", highlight = False)
+        sys.exit(e.code)
     except KeyboardInterrupt:
         Console().print()
         Console().log("[yellow][Warning] Program received KeyboardInterrupt...")
