@@ -27,7 +27,7 @@
 #
 # The options specified below are presented to you when converting a file. You
 # can customize these options to your liking. For more information/documentation
-# on how to customize these questions and parameters, go to the following link:
+# on how to customize these questions and parameters, head to the following link:
 #
 # https://github.com/SomedudeX/MPEG-Convert/tree/main?tab=readme-ov-file#customizing
 
@@ -147,7 +147,6 @@ DEFAULT_OPTIONS = {
 import sys
 import json
 import platform
-import argparse
 
 from os import path
 from os import _exit
@@ -169,15 +168,16 @@ except ModuleNotFoundError as e:
     print(f" [Fatal] {_error.capitalize()}")
     print(f" - Make sure you install all required modules by using 'pip'")
     print(f" - Exiting mpeg-convert.py...")
+    print(f" [Info] Mpeg-convert.py terminated with exit code -1")
     raise SystemExit(-1)
     
     
 HELP_TEXT = (
-"Usage: mpeg-convert.py [options] <file.in> <file.out>                  \n\
+"Usage: mpeg-convert.py \\[options] <file.in> <file.out>                \n\
                                                                         \n\
 Required args:                                                          \n\
-    <file.in>       The path to the file to convert from                \n\
-    <file.out>      The path to the file to output to                   \n\
+    file.in        The path to the file to convert from                 \n\
+    file.out       The path to the file to output to                    \n\
                                                                         \n\
 Optional args:                                                          \n\
     --version       Prints the version information to the console       \n\
@@ -185,12 +185,14 @@ Optional args:                                                          \n\
     -v  --verbose   Outputs all ffmpeg log to the console               \n\
     -d  --default   Use all default options (customizable from script)  \n\
                                                                         \n\
-Custom encoders can be listed by 'ffmpeg -codecs'. Additionally,        \n\
-FFmpeg will automatically detect the file extensions/containers         \n\
-to convert to/from; you do not need to specify anything.                \
+Custom encoders can be listed by 'ffmpeg -codecs'. Additionally, FFmpeg \n\
+will automatically detect the file extensions/containers to convert     \n\
+to/from; you do not need to specify anything.                           \n\
+                                                                        \n\
+Head to https://github.com/SomedudeX/MPEG-Convert/blob/main/README.md   \n\
+for more documentation on mpeg-convert.py.                                \
 "
 )
-
 
 class ProgramVersion():
     """Represents the version of the system version"""
@@ -200,7 +202,7 @@ class ProgramVersion():
         _major: int,
         _minor: int,
         _patch: int,
-        _notes: str
+        _notes: str = ""
     ) -> None:
         """Initializes a version object"""
         self.MAJOR = _major
@@ -217,7 +219,8 @@ class OptionsHandler():
         self,
         _metadata: dict,
         _audio_stream: int,
-        _video_stream: int
+        _video_stream: int,
+        _filepath_out: str
     ) -> None:
         """Initializes an instance of OptionsHandler()
         
@@ -231,17 +234,20 @@ class OptionsHandler():
             _video_stream: the first video stream
         """
         self.console = Console(highlight = False)
-        self.error_console = Console(stderr = True, style = "red")
+        self.error_console = Console(stderr = True, style = "red", highlight = False)
         
         self.options = {}
         self.metadata = _metadata
         self.audio_stream = _audio_stream
         self.video_stream = _video_stream
         
+        self._output = _filepath_out
+        self.replace = "n"
+        
     def ask_encode_options(
         self, 
         _default: bool = False
-    ) -> dict:
+    ) -> dict[str, str]:
         """Asks the user for encoding options
         
         + Notes -
@@ -266,6 +272,20 @@ class OptionsHandler():
             e.g. { 'c:a': 'libmp3lame' } corresponds to '-c:a libmp3lame' 
         """
         if _default:
+            if path.isfile(self._output):
+                self.console.print()
+                self.replace = Prompt.ask(
+                    " -  Replace existing output path",
+                    choices = ["y", "n"],
+                    default = "n"
+                )
+                
+                if self.replace == "n":
+                    self.console.print()
+                    self.console.log("[Info] Finished gathering encoding options")
+                    self.console.log("[Info] User declined operation, terminating")
+                    raise SystemExit(0)
+                    
             self.options = DEFAULT_OPTIONS
             return self.options
 
@@ -293,6 +313,20 @@ class OptionsHandler():
             
         self.console.print()
         self.console.print("[bold] -*- Miscellaneous options -*-")
+        
+        if path.isfile(self._output):
+            self.console.print()
+            self.replace = Prompt.ask(
+                " -  Replace existing output path",
+                choices = ["y", "n"],
+                default = "n"
+            )
+            
+            if self.replace == "n":
+                self.console.print()
+                self.console.log("[Info] Finished gathering encoding options")
+                self.console.log("[Info] User declined operation, terminating")
+                raise SystemExit(0)
         
         self.console.print()
         _metadata_strip = Prompt.ask(
@@ -370,7 +404,10 @@ class OptionsHandler():
 
         return _ret
         
-    def _ask_question(self, _question: dict) -> dict:
+    def _ask_question(
+        self, 
+        _question: dict
+    ) -> dict:
         """Asks the user a question
         
         + Args -
@@ -424,7 +461,11 @@ class OptionsHandler():
             
         return _ret
         
-    def _print_choices(self, _choices: list[tuple], _default: int) -> None:
+    def _print_choices(
+        self, 
+        _choices: list[tuple], 
+        _default: int
+    ) -> None:
         """Prints the choices from a list of tuples
         
         + Args -
@@ -562,9 +603,9 @@ class MetadataLogger():
         Console().log(f"|    Video codec      : {_fmt}", highlight = False)
         Console().log(f"|    Video color      : {_col}", highlight = False)
         Console().log(f"|    Video resolution : {_res}", highlight = False)
-        Console().log(f"|    Video framerate  : {_fps} fps", highlight = False)
-        Console().log(f"|    Video length     : {_dur} seconds", highlight = False)
-        Console().log(f"|    Total frames     : {_fra} frames", highlight = False)
+        Console().log(f"|    Video framerate  : {_fps}", highlight = False)
+        Console().log(f"|    Video length     : {_dur}s", highlight = False)
+        Console().log(f"|    Total frames     : {_fra}", highlight = False)
         return
         
     @staticmethod
@@ -583,22 +624,22 @@ class MetadataLogger():
         except: _fmt: str = f"[yellow]--"
         try: _prf: str = f"{_audio_stream['profile']}"
         except: _prf: str = f"[yellow]--"
-        try: _smp: str = f"{_audio_stream['sample_rate']}"
+        try: _smp: str = f"{_audio_stream['sample_rate']} Hz"
         except: _smp: str = f"[yellow]--"
         try: _chn: str = f"{_audio_stream['channels']}"
         except: _chn: str = f"[yellow]--"
         try: _lay: str = f"{_audio_stream['channel_layout'].capitalize()}"
         except: _lay: str = f"[yellow]--"
-        try: _btr: str = f"{int(_audio_stream['bit_rate']) // 1000}"
+        try: _btr: str = f"{int(_audio_stream['bit_rate']) // 1000} kb/s"
         except: _btr: str = f"[yellow]--"
         
         Console().log(f"[bold]- Audio (source stream {_idx})")
         Console().log(f"|    Audio codec      : {_fmt}", highlight = False)
         Console().log(f"|    Audio profile    : {_prf}", highlight = False)
-        Console().log(f"|    Audio samplerate : {_smp} Hz", highlight = False)
+        Console().log(f"|    Audio samplerate : {_smp}", highlight = False)
         Console().log(f"|    Audio channels   : {_chn}", highlight = False)
         Console().log(f"|    Audio layout     : {_lay}", highlight = False)
-        Console().log(f"|    Audio bitrate    : {_btr} kb/s", highlight = False)
+        Console().log(f"|    Audio bitrate    : {_btr}", highlight = False)
         return
     
     @staticmethod
@@ -656,7 +697,7 @@ class MetadataManager():
             None: instead, fetches the metadata into the class attribute 
             `self.metadata`
         """
-        self.console.log("[Info] Probing file properties and metadata with ffprobe...")
+        self.console.log("[Info] Probing file properties and metadata with ffprobe")
         _ffprobe = FFmpeg(executable = "ffprobe").input(
                 self.input_path,
                 print_format = 'json',
@@ -760,10 +801,10 @@ class Program():
         parsing the command-line arguments, and verifying thatthe installation
         of ffmpeg is discoverable
         """
-        self.VERSION = ProgramVersion(1, 2, 0, "pre.1")
+        self.VERSION = ProgramVersion(1, 1, 3, "pre.2")
         
         self.console = Console(highlight = False)
-        self.error_console = Console(stderr = True, style = "red")
+        self.error_console = Console(stderr = True, style = "red", highlight = False)
         
         self.verbose = False
         self.default = False
@@ -772,15 +813,10 @@ class Program():
             self.parse_args()
         except Exception as e:
             _error = str(e)
-            self.error_console.log(f"[Error] Program().parse_args() failed: {_error}", highlight = False)
-            self.error_console.log(f"- Mpeg-convert usage: mpeg-convert [options] <file.in> <file.out>", highlight = False)
-            self.error_console.log(f"- Program terminating due to inapt command-line arguments", highlight = False)
+            self.error_console.log(f"[Fatal] Program().parse_args() failed: {_error}")
+            self.error_console.log(f"- Mpeg-convert usage: mpeg-convert \\[options] <file.in> <file.out>")
+            self.error_console.log(f"- Program terminating due to inapt command-line arguments")
             raise SystemExit(1)
-
-        if self.verbose: 
-            self.console.log(f"[yellow][Warning] Using debug mode")
-        if self.default: 
-            self.console.log(f"[yellow][Warning] Using all default options")
         
         self.check_ffmpeg()
         return
@@ -823,7 +859,7 @@ class Program():
                     _default = True
                 elif value == "-v" or value == "--verbose":
                     _verbose = True
-                elif value == "-dv" or "-vd":
+                elif value == "-dv" or value == "-vd":
                     _default = True
                     _verbose = True
                 else:
@@ -841,6 +877,13 @@ class Program():
         self.verbose = _verbose
         self.default = _default
         
+        if len(_input) == 0:
+            raise Exception(f"input file path not specified")
+        if len(_output) == 0:
+            raise Exception(f"output file path not specified")
+        if not path.isfile(_input):
+            raise Exception(f"input path '{_input}' is invalid")
+        
         _raw_args = [
             f"--verbose={str(self.verbose).lower()}", 
             f"--default={str(self.default).lower()}", 
@@ -848,16 +891,14 @@ class Program():
             f"{self.output}"
         ]
         
+        if self.verbose: 
+            self.console.log(f"[yellow][Warning] Using debug mode")
+        if self.default: 
+            self.console.log(f"[yellow][Warning] Using all default options")
+        
         self.console.log(
             f"[Info] Received command-line arguments: \n{_raw_args}"
         )
-        
-        if len(_input) == 0 or len(_output) == 0:
-            raise Exception(f"input/output file not specified")
-        if not path.isfile(_input):
-            raise Exception(f"input path '{_input}' is invalid")
-        if not path.isfile(_output):
-            raise Exception(f"output path '{_output}' is invalid")
         
         _cwd = getcwd()
         _cwd = _cwd + "/"
@@ -944,11 +985,12 @@ class Program():
         self.options_handler = OptionsHandler(
             self.media.metadata, 
             self.media.audio_stream, 
-            self.media.video_stream
+            self.media.video_stream,
+            self.output
         )
         
         self.options = self.options_handler.ask_encode_options(self.default)
-        self.console.log(f"[Info] Finished asking encoding options")
+        self.console.log(f"[Info] Finished gathering encoding options")
         return
 
     def convert(self) -> None:
@@ -961,12 +1003,13 @@ class Program():
             See python-ffmpeg documentation for its api usage
         """
         self.instance = (FFmpeg()
-            .option("y")
+            .option(self.options_handler.replace)
             .input(self.input)
             .output(
                 self.output,
                 self.options
-            ))
+            )
+        )
 
         self.last_frame: int = 0
         self.start_time: float = time()
@@ -982,7 +1025,7 @@ class Program():
         ) as _bar:
 
             @self.instance.on("progress")
-            def update_prog(_progress: Progress) -> None:
+            def update_progress(_progress: Progress) -> None:
                 _bar.update(_task, total = self.total_frame)
                 _bar.update(_task, advance = _progress.frame - self.last_frame)
                 self.last_frame = _progress.frame
@@ -992,9 +1035,9 @@ class Program():
                 self.console.log(f"[Info] Initiated FFmpeg task with the following command: {_args}")
 
             @self.instance.on("stderr")
-            def ffmpeg_out(_Msg: str) -> None:
+            def ffmpeg_out(_msg: str) -> None:
                 if self.verbose:
-                    self.console.log(f"[FFmpeg] {_Msg}")
+                    self.console.log(f"[FFmpeg] {_msg}")
 
             _task = _bar.add_task("[green]Transcoding file...", total = None)
             self.instance.execute()
@@ -1006,7 +1049,7 @@ class Program():
         conversions, catches errors should they arise.
         """
         
-        self.console.log(f"[Info] Received (parsed) file paths: \n'{self.input}' and '{self.output}'")
+        self.console.log(f"[Info] Parsed file paths: \n'{self.input}' and '{self.output}'")
 
         try:
             self.process()
@@ -1017,13 +1060,13 @@ class Program():
                 _ffmpeg_args = _ffmpeg_args + _arg + " "
 
             self.error_console.log(f"[Fatal] An ffmpeg exception has occured!")
-            self.error_console.log(f"- Error message from ffmpeg: [white]{_error.message}", highlight = False)
-            self.error_console.log(f"- Arguments to execute ffmpeg: [white]{_ffmpeg_args}", highlight = False)
-            self.error_console.log(f"- Use the '-v' or '--verbose' option to hear ffmpeg output", highlight = False)
-            self.error_console.log(f"- Common pitfalls: ", highlight = False)
-            self.error_console.log(f"  * Does the output file have an extension?", highlight = False)
-            self.error_console.log(f"  * Does the extension match the codec?", highlight = False)
-            self.error_console.log(f"  * Is the encoder installed on your system?", highlight = False)
+            self.error_console.log(f"- Error message from ffmpeg: [white]{_error.message}")
+            self.error_console.log(f"- Arguments to execute ffmpeg: [white]{_ffmpeg_args}")
+            self.error_console.log(f"- Use the '-v' or '--verbose' option to hear ffmpeg output")
+            self.error_console.log(f"- Common pitfalls: ")
+            self.error_console.log(f"  * Does the output file have an extension?")
+            self.error_console.log(f"  * Does the extension match the codec?")
+            self.error_console.log(f"  * Is the encoder installed on your system?")
             raise SystemExit(1)
 
         self.console.log(f"[green][Info] Succesfully executed mpeg-convert")
@@ -1061,10 +1104,11 @@ if __name__ == "__main__":
         instance.run()
         raise SystemExit(0)
     except SystemExit as e:
-        Console().log(f"[Info] Mpeg-convert.py terminated with exit code {e}", highlight = False)
+        if e.code != 0:
+            Console().log(f"[Info] Mpeg-convert.py terminated with exit code {e}", highlight = False)
         sys.exit(e.code)
     except KeyboardInterrupt:
         Console().print()
-        Console().log("[yellow][Warning] Program received KeyboardInterrupt...")
-        Console().log("[yellow][Warning] Force quitting with [/yellow]os._exit()...")
+        Console().log("[yellow][Warning] Program received KeyboardInterrupt", highlight = False)
+        Console().log("[yellow][Warning] Force quitting with os._exit(0)", highlight = False)
         _exit(0)    # Force terminate all threads
