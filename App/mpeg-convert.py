@@ -801,7 +801,7 @@ class Program():
         parsing the command-line arguments, and verifying thatthe installation
         of ffmpeg is discoverable
         """
-        self.VERSION = ProgramVersion(1, 1, 3, "pre.2")
+        self.VERSION = ProgramVersion(1, 2, 0, "pre.2")
         
         self.console = Console(highlight = False)
         self.error_console = Console(stderr = True, style = "red", highlight = False)
