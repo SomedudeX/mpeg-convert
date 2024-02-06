@@ -131,6 +131,6 @@ This format also applies to existing questions as well.
  - [License](https://raw.githubusercontent.com/SomedudeX/MPEG-Convert/main/LICENSE)
  - [Releases](https://github.com/SomedudeX/MPEG-Convert/releases)
 
-Contributions are welcome! If you encounter issues or have suggestions for improvements, please feel free to open an issue or submit a pull request. In the meantime, happy converting! 
+Contributions are welcome! If you encounter any problems or find any bugs, please feel free to open an issue. In the meantime, happy converting! 
 
 --
