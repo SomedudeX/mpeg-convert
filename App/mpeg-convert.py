@@ -165,9 +165,9 @@ try:
     
 except ModuleNotFoundError as e:
     _error = str(e)
-    print(f" [Fatal] {_error.capitalize()}")
+    print(f" \033[91m[Fatal] Module missing: {_error.lower()}")
     print(f" - Make sure you install all required modules by using 'pip'")
-    print(f" - Exiting mpeg-convert.py...")
+    print(f" - Make sure you are using the correct version of python\033[0m")
     print(f" [Info] Mpeg-convert.py terminated with exit code -1")
     raise SystemExit(-1)
     
@@ -209,7 +209,26 @@ class ProgramVersion():
         self.MINOR = _minor
         self.PATCH = _patch
         self.NOTES = _notes
-        
+
+
+class FatalError(Exception):
+    """Represents a fatal error encountered during the execution of the program"""
+    
+    def __init__(
+        self,
+        _exit_code: int = 1,
+        _msg: str = "An unknown fatal error occured",
+        *_notes: str
+    ) -> None:
+        """Initializes a FatalError object"""
+        self.code = _exit_code
+        self.msg = "[Fatal] " + _msg
+        self.note = ""
+        for index, note in enumerate(_notes):
+            if index == 0:
+                self.note = f"{note}"
+                continue
+            self.note += f"\n{note}"
         
 
 class OptionsHandler():
@@ -234,7 +253,7 @@ class OptionsHandler():
             _video_stream: the first video stream
         """
         self.console = Console(highlight = False)
-        self.error_console = Console(stderr = True, style = "red", highlight = False)
+        self.error_console = Console(style = "red", highlight = False)
         
         self.options = {}
         self.metadata = _metadata
@@ -365,9 +384,11 @@ class OptionsHandler():
         _ret: dict = {}
         
         if self.audio_stream == -1:
-            self.error_console.log("[Error] No audio stream detected in metadata! ")
-            self.error_console.log("- This may lead to unexpected issues")
-            _continue = Confirm.ask("- Would you like to continue? ")
+            self.error_console.print()
+            self.error_console.print("[Error] No audio stream detected in metadata! ")
+            self.error_console.print(" - This may lead to unexpected issues")
+            self.error_console.print(" - You are entering unknown territory")
+            _continue = Confirm.ask("[red] - Would you like to continue?")
             if not _continue:
                 return _ret
         
@@ -391,9 +412,11 @@ class OptionsHandler():
         _ret: dict = {}
         
         if self.video_stream == -1:
-            self.error_console.log("[Error] No video stream detected in metadata! ")
-            self.error_console.log("- This may lead to unexpected issues")
-            _continue = Confirm.ask("- Would you like to continue? ")
+            self.error_console.print()
+            self.error_console.print("[Error] No video stream detected in metadata! ")
+            self.error_console.print(" - This may lead to unexpected issues")
+            self.error_console.print(" - You are entering unknown territory")
+            _continue = Confirm.ask("[red] - Would you like to continue?")
             if not _continue:
                 return _ret
                 
@@ -436,7 +459,8 @@ class OptionsHandler():
             _answer_index = Prompt.ask(
                 " -  Select an option", 
                 choices = [str(i + 1) for i in range(_total_length)], 
-                default = str(_question["default"])
+                default = str(_question["default"]),
+                
             )
             
             _answer_index = int(_answer_index) - 1
@@ -569,7 +593,7 @@ class MetadataLogger():
             elif _stream["codec_type"] == "audio":
                 MetadataLogger.log_audio_metadata(_stream)
             else:
-                Console().log(f"[bold]- Auxiliary (stream type '{_stream["codec_type"]}')")
+                Console().log(f"- Auxiliary (stream type '{_stream["codec_type"]}')", highlight = False)
                 
         Console().log(f"[Info] End source info ", highlight = False)
         return
@@ -585,21 +609,21 @@ class MetadataLogger():
         
         # The notorious 'one liners', except 14 times
         try: _idx: str = f"{_video_stream['index']}"
-        except: _idx: str = f"[yellow]--"
+        except: _idx: str = f"N/A"
         try: _col: str = f"{_video_stream['color_space']}"
-        except: _col: str = f"[yellow]--"
+        except: _col: str = f"N/A"
         try: _fmt: str = f"{_video_stream['codec_long_name']}"
-        except: _fmt: str = f"[yellow]--"
+        except: _fmt: str = f"N/A"
         try: _res: str = f"{_video_stream['width']}x{_video_stream['height']}"
-        except: _res: str = f"[yellow]--"
+        except: _res: str = f"N/A"
         try: _fps: str = f"{MetadataLogger._get_framerate(_video_stream['avg_frame_rate'])}"
-        except: _fps: str = f"[yellow]--"
+        except: _fps: str = f"N/A"
         try: _dur: str = f"{round(float(_video_stream['duration']), 2)}"
-        except: _dur: str = f"[yellow]--"
+        except: _dur: str = f"N/A"
         try: _fra: str = f"{round(float(_fps) * float(_dur), 2)}"
-        except: _fra: str = f"[yellow]--"
+        except: _fra: str = f"N/A"
         
-        Console().log(f"[bold]- Video (source stream {_idx})")
+        Console().log(f"- Video (source stream {_idx})", highlight = False)
         Console().log(f"|    Video codec      : {_fmt}", highlight = False)
         Console().log(f"|    Video color      : {_col}", highlight = False)
         Console().log(f"|    Video resolution : {_res}", highlight = False)
@@ -619,21 +643,21 @@ class MetadataLogger():
         
         # The notorious 'one liners', except 14 times
         try: _idx: str = f"{_audio_stream['index']}"
-        except: _idx: str = f"[yellow]--"
+        except: _idx: str = f"N/A"
         try: _fmt: str = f"{_audio_stream['codec_long_name']}"
-        except: _fmt: str = f"[yellow]--"
+        except: _fmt: str = f"N/A"
         try: _prf: str = f"{_audio_stream['profile']}"
-        except: _prf: str = f"[yellow]--"
+        except: _prf: str = f"N/A"
         try: _smp: str = f"{_audio_stream['sample_rate']} Hz"
-        except: _smp: str = f"[yellow]--"
+        except: _smp: str = f"N/A"
         try: _chn: str = f"{_audio_stream['channels']}"
-        except: _chn: str = f"[yellow]--"
+        except: _chn: str = f"N/A"
         try: _lay: str = f"{_audio_stream['channel_layout'].capitalize()}"
-        except: _lay: str = f"[yellow]--"
+        except: _lay: str = f"N/A"
         try: _btr: str = f"{int(_audio_stream['bit_rate']) // 1000} kb/s"
-        except: _btr: str = f"[yellow]--"
+        except: _btr: str = f"N/A"
         
-        Console().log(f"[bold]- Audio (source stream {_idx})")
+        Console().log(f"- Audio (source stream {_idx})", highlight = False)
         Console().log(f"|    Audio codec      : {_fmt}", highlight = False)
         Console().log(f"|    Audio profile    : {_prf}", highlight = False)
         Console().log(f"|    Audio samplerate : {_smp}", highlight = False)
@@ -677,7 +701,6 @@ class MetadataManager():
             logs)
         """
         self.console = Console(highlight = False)
-        self.error_console = Console(stderr = True, style = "red")
 
         self.input_path = _input_path
         self.get_metadata(_debug)
@@ -734,6 +757,8 @@ class MetadataManager():
                 _ret = _stream["index"]
                 break
         
+        if _ret == -1:
+            self.console.log(f"[yellow][Warning] No audio stream found")
         return _ret
         
     def get_video_stream(self) -> int:
@@ -753,6 +778,8 @@ class MetadataManager():
                 _ret = _stream["index"]
                 break
         
+        if _ret == -1:
+            self.console.log(f"[yellow][Warning] No video stream found")
         return _ret
 
     def get_total_secs(self) -> int:
@@ -801,22 +828,29 @@ class Program():
         parsing the command-line arguments, and verifying thatthe installation
         of ffmpeg is discoverable
         """
-        self.VERSION = ProgramVersion(1, 2, 0, "pre.2")
+        self.VERSION = ProgramVersion(1, 2, 0)
         
         self.console = Console(highlight = False)
-        self.error_console = Console(stderr = True, style = "red", highlight = False)
+        self.error_console = Console(style = "red", highlight = False)
         
         self.verbose = False
         self.default = False
+        
+        if not sys.stdout.isatty():
+            self.console.log("[yellow][Warning] Mpeg-convert.py is not outputting to a tty")
+            self.console.log("[yellow]- You might be piping the output for debugging")
+            self.console.log("[yellow]- Some functionalities will be limited")
         
         try: 
             self.parse_args()
         except Exception as e:
             _error = str(e)
-            self.error_console.log(f"[Fatal] Program().parse_args() failed: {_error}")
-            self.error_console.log(f"- Mpeg-convert usage: mpeg-convert \\[options] <file.in> <file.out>")
-            self.error_console.log(f"- Program terminating due to inapt command-line arguments")
-            raise SystemExit(1)
+            raise FatalError(
+                1,
+                f"Program.parse_args() failed: {_error}",
+                f"- Mpeg-convert.py usage: mpeg-convert \\[options] <file.in> <file.out>",
+                f"- MPEG-convert.py terminating due to inapt command-line arguments"
+            )
         
         self.check_ffmpeg()
         return
@@ -883,21 +917,14 @@ class Program():
             raise Exception(f"output file path not specified")
         if not path.isfile(_input):
             raise Exception(f"input path '{_input}' is invalid")
-        
-        _raw_args = [
-            f"--verbose={str(self.verbose).lower()}", 
-            f"--default={str(self.default).lower()}", 
-            f"{self.input}", 
-            f"{self.output}"
-        ]
-        
+            
         if self.verbose: 
-            self.console.log(f"[yellow][Warning] Using debug mode")
+            self.console.log(f"[yellow][Warning] Using verbose mode")
         if self.default: 
             self.console.log(f"[yellow][Warning] Using all default options")
         
         self.console.log(
-            f"[Info] Received command-line arguments: \n{_raw_args}"
+            f"[Info] Received file paths: '{self.input}', '{self.output}'"
         )
         
         _cwd = getcwd()
@@ -907,15 +934,17 @@ class Program():
         if self.output[0] != "/" and self.output[0] != "~":
             self.output = _cwd + self.output
             
+        self.console.log(f"[Info] Parsed file paths: '{self.input}', '{self.output}'")
+            
         return
 
     def print_version(self):
         """Prints the version information to the console"""
-        _program_version: str = f"{self.VERSION.MAJOR}.{self.VERSION.MINOR}.{self.VERSION.PATCH}-{self.VERSION.NOTES}"
+        _program_version: str = f"v{self.VERSION.MAJOR}.{self.VERSION.MINOR}.{self.VERSION.PATCH}-{self.VERSION.NOTES}"
         _python_version: str = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
         _platform: str = f"{sys.platform.capitalize()} ({platform.architecture()[0]} {platform.machine()})"
         
-        self.console.print(f"Program  : v{_program_version}")
+        self.console.print(f"Program  : {_program_version}")
         self.console.print(f"Python   : {_python_version}")
         self.console.print(f"Platform : {_platform}")
         
@@ -937,12 +966,13 @@ class Program():
             _ffprobe.execute()
             _ffmpeg.execute()
         except FileNotFoundError:
-            self.error_console.log(
-                "[Fatal] Program().check_ffmpeg() failed: could not find FFmpeg installation in path",
-                "- Make sure FFmpeg is installed and is in path before launching this script"
+            raise FatalError(
+                127,
+                "Could not detect FFmpeg executable in system path",
+                " - Make sure FFmpeg is installed",
+                " - Make sure FFmpeg is in $PATH"
             )
             
-            raise SystemExit(127)
         return
 
     def process(self) -> None:
@@ -957,10 +987,10 @@ class Program():
         determine the progress, audio files (which have no video frames)
         will cause the program's progress bar to be indeterminate
         """
-        self.media       = MetadataManager(self.input, self.verbose)
-        self.framerate   = None
-        self.total_secs  = None
-        self.total_frame = None
+        self.media: MetadataManager    = MetadataManager(self.input, self.verbose)
+        self.framerate: None | int     = None
+        self.total_secs: None | int    = None
+        self.total_frame: None | float = None
         
         try:
             self.framerate   = self.media.get_framerate()
@@ -968,17 +998,17 @@ class Program():
             self.total_frame = self.total_secs * self.framerate
         except Exception as e:
             self.error_console.log(f"[yellow][Warning] Failed retrieving total frames")
-            self.error_console.log(f"[yellow]- The program uses video frames to calculate remaining time")
-            self.error_console.log(f"[yellow]- The progress bar will be indeterminate")
-            self.error_console.log(f"[yellow]- Perhaps you are converting an audio file?")
+            self.error_console.log(f"[yellow] - Mpeg-convert.py uses video frames to calculate remaining time")
+            self.error_console.log(f"[yellow] - The progress bar will be indeterminate")
+            self.error_console.log(f"[yellow] - Perhaps you are converting an audio file?")
             
         # MPEG-Convert has only been tested for a max
         # of 3 streams (video, audio, subtitles)
         if len(self.media.metadata['streams']) > 3:
             self.console.log(f"[yellow][Warning] Multiple video/audio streams detected")
-            self.console.log(f"- Mpeg-convert has not been tested for multiple video/audio streams")
-            self.console.log(f"- You are entering unknown territory if you proceed! ")
-            self.console.log(f"- This could also be a false detection")
+            self.console.log(f" - Mpeg-convert has not been tested for multiple video/audio streams")
+            self.console.log(f" - You are entering unknown territory if you proceed! ")
+            self.console.log(f" - This could also be a false detection")
         
         MetadataLogger().log_metadata(self.media.metadata)
         
@@ -1049,29 +1079,31 @@ class Program():
         conversions, catches errors should they arise.
         """
         
-        self.console.log(f"[Info] Parsed file paths: \n'{self.input}' and '{self.output}'")
-
         try:
             self.process()
             self.convert()
         except FFmpegError as _error:
-            _ffmpeg_args = ""
-            for _arg in _error.arguments:
-                _ffmpeg_args = _ffmpeg_args + _arg + " "
-
-            self.error_console.log(f"[Fatal] An ffmpeg exception has occured!")
-            self.error_console.log(f"- Error message from ffmpeg: [white]{_error.message}")
-            self.error_console.log(f"- Arguments to execute ffmpeg: [white]{_ffmpeg_args}")
-            self.error_console.log(f"- Use the '-v' or '--verbose' option to hear ffmpeg output")
-            self.error_console.log(f"- Common pitfalls: ")
-            self.error_console.log(f"  * Does the output file have an extension?")
-            self.error_console.log(f"  * Does the extension match the codec?")
-            self.error_console.log(f"  * Is the encoder installed on your system?")
-            raise SystemExit(1)
-
+            raise FatalError(
+                1,
+                "An FFmpeg exeption has occured",
+                f" - Error message from FFmpeg: '{_error.message}'",
+                f" - Arguments to execute FFmpeg: {_error.arguments}",
+                f" - Use the '-v' or '--verbose' option to hear FFmpeg output",
+                f" - Common pitfalls: ",
+                f"   * Does the output file have an extension?",
+                f"   * Does the extension match the codec?",
+                f"   * Is the encoder installed on your system?"
+            )
+            
+        except BrokenPipeError:
+            _exit(0)    # When using tee to capture stdout
+        
+        _total_time = round(time() - self.start_time, 2)
+        _total_space = self._readable_size(self.output)
+        
         self.console.log(f"[green][Info] Succesfully executed mpeg-convert")
-        self.console.log(f"- Took {round(time() - self.start_time, 2)} seconds to convert {self.total_frame} frames")
-        self.console.log(f"- Took {self._readable_size(self.output)} mb of space")
+        self.console.log(f"- Took {_total_time} seconds")
+        self.console.log(f"- Took {_total_space} of space")
         self.console.log(f"- Output file saved to '{self.output}'")
         return
         
@@ -1098,17 +1130,27 @@ class Program():
 
 
 if __name__ == "__main__":
+    _printer = Console(highlight = False)
+    _err_printer = Console(
+        style = "red",
+        highlight = False
+    )
+    
     try:
-        traceback.install(show_locals = True)
+        traceback.install(show_locals = False)
         instance = Program()
         instance.run()
         raise SystemExit(0)
-    except SystemExit as e:
-        if e.code != 0:
-            Console().log(f"[Info] Mpeg-convert.py terminated with exit code {e}", highlight = False)
-        sys.exit(e.code)
+    except FatalError as e:
+        _err_printer.log(f"{e.msg}")
+        _err_printer.log(f"{e.note}")
+        _printer.log(f"[Info] Mpeg-convert.py terminated with exit code {e.code}")
+        raise SystemExit(e.code)
     except KeyboardInterrupt:
-        Console().print()
-        Console().log("[yellow][Warning] Program received KeyboardInterrupt", highlight = False)
-        Console().log("[yellow][Warning] Force quitting with os._exit(0)", highlight = False)
-        _exit(0)    # Force terminate all threads
+        try:
+            _printer.print()
+            _printer.log("[Warning] Mpeg-convert.py received KeyboardInterrupt", style = "yellow")
+            _printer.log("[Warning] Force quitting with os._exit()", style = "yellow")
+            _exit(0)                # Force terminate all threads
+        except BrokenPipeError: 
+            _exit(0)                # When using tee to capture stdout
