@@ -1,3 +1,10 @@
+# Install script for legacy support
+
+echo " [WARNING] You are running a deprecated legacy install script"
+echo " [WARNING] Mpeg-convert is now hosted on PyPi"
+echo " [WARNING] Consider using pip to install mpeg-convert"
+
+
 echo " - Checking the installation of curl"
 if ! command -v curl >/dev/null 2>&1; then
     echo " - Error: curl is not installed"
@@ -27,11 +34,11 @@ curl -s https://raw.githubusercontent.com/SomedudeX/MPEG-Convert/v1.0.0/requirem
 echo " - Received requirements.txt"
 
 echo " - Receiving script (mpeg-convert.py)"
-curl -s https://raw.githubusercontent.com/SomedudeX/MPEG-Convert/main/App/mpeg-convert.py > mpeg-convert.py
+curl -s https://raw.githubusercontent.com/SomedudeX/MPEG-Convert/v1.2.0/App/mpeg-convert.py > mpeg-convert.py
 echo " - Received mpeg-convert.py"
 
 echo " - Installing dependencies with pip3: \n   * python-ffmpeg\n   * rich"
-python -m pip install -r requirements.txt 2>&1 > /dev/null &;
+python -m pip install -r requirements.txt;
 
 wait
 

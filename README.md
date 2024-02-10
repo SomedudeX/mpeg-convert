@@ -4,7 +4,7 @@ A highly customizable<sup>[1](#Customizing)</sup> terminal-based [Python](https:
 
 FFmpeg is a powerful multimedia tool, but its many options<sup>[2](https://ffmpeg.org/ffmpeg.html)</sup> can be especially overwhelming for new users. This wrapper aims to simplify the process of working with the FFmpeg engine to convert between different video/audio formats for the folks who doesn't want to memorize twenty options to use FFmpeg. This program is not, however, a complete replacement for FFmpeg in any way. For that purpose, you should look look into other software such as [Handbrake](https://handbrake.fr/) or [DaVinci Resolve](https://www.blackmagicdesign.com/products/davinciresolve). 
 
-Additionally, this tool has been hacked together in a couple of weeks, meaning that some of the finer details has not been fleshed out or extensively tested — expect some rough corners during use. This tool also has not been tested or designed for multiple video or audio streams. 
+This tool is not tested or designed for multiple video or audio streams. 
 
 ## Features
 
@@ -20,14 +20,17 @@ Make sure you have Python 3 and FFmpeg installed.
 
 #### Automatic
 
+* Use pip to install and manage mpeg-convert and its dependencies
+
 ```bash
-eval "$(curl -s https://raw.githubusercontent.com/SomedudeX/MPEG-Convert/main/install.sh)"
+pip install --upgrade mpeg-convert
 ```
 
-> [!IMPORTANT]
-> For macOS users, make sure to go into the script and do a global find-and-replace from `libx264` to `h264_videotoolbox` and from `libx265` to `hevc_videotoolbox`.
->
-> This is necessary because the regular `libx264` and `libx265` encoder is horribly slow on macOS. By using Apple's own encoders, you can get much faster encoding results.
+* Launch the script
+
+```bash
+mpeg-convert --help
+```
 
 #### Manual
 
@@ -41,23 +44,22 @@ eval "$(curl -s https://raw.githubusercontent.com/SomedudeX/MPEG-Convert/main/in
 * Install script dependencies
 
   ```bash
-  python -m pip install -r requirements.txt
+  python3 -m pip install -r requirements.txt
   ```
 
 * Launch the script
 
   ```bash
-  ./App/mpeg-convert.py --help
+  cd src
+  python3 -m mpeg-convert --help
   ```
-  
-You may need to add execution privileges to the script by `sudo chmod +x` in order to execute it. Additionally, if you would like to run this script from anywhere in the terminal, you can add the script's path to your environment's `$PATH` variable. 
 
 > [!WARNING]
-> The manual installation instructions are designed for POSIX-compliant shells (Linux/macOS) and are not tested for Windows. 
+> The manual installation instructions are designed for POSIX-compliant shells found in Linux/macOS. The instructions are not tested for Windows. 
 
 ## Customizing
 
-You can further customize the script by changing the questions variable `VIDEO_OPTIONS`<sup>[3](https://github.com/SomedudeX/MPEG-Convert/blob/main/App/mpeg-convert.py#L35)</sup> and `AUDIO_OPTIONS`<sup>[4](https://github.com/SomedudeX/MPEG-Convert/blob/main/App/mpeg-convert.py#L90)</sup> in mpeg-convert.py to your liking. 
+You can further customize the script by changing the questions variable `VIDEO_OPTIONS` and `AUDIO_OPTIONS` in mpeg-convert to your liking. This can be achieved using the `--customize` option, which will open the correct file for you in your default text editor.
 
 The two variables represents the list of questions asked during video options and audio options sections of the script respectively. The properties of each question is represented as a dictionary in python, and will be shown to the user in order. The dictionaries' format is shown below:
 
@@ -112,7 +114,7 @@ An example of a custom question is below:
 ]
 ```
 
-This format also applies to existing questions as well.
+This format applies to existing questions as well.
 
 ## Troubleshooting
 
@@ -127,9 +129,9 @@ This format also applies to existing questions as well.
 
 ## Resources
 
- - [Demo](https://github.com/SomedudeX/MPEG-Convert/raw/main/Demo/demo.mov)
- - [License](https://raw.githubusercontent.com/SomedudeX/MPEG-Convert/main/LICENSE)
- - [Releases](https://github.com/SomedudeX/MPEG-Convert/releases)
+ - [Demo](https://github.com/SomedudeX/mpeg-convert/raw/main/demo.mov)
+ - [License](https://raw.githubusercontent.com/SomedudeX/mpeg-convert/main/LICENSE)
+ - [Releases](https://github.com/SomedudeX/mpeg-convert/releases)
 
 Contributions are welcome! If you encounter any problems or find any bugs, please feel free to open an issue. In the meantime, happy converting! 
 

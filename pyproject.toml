@@ -1,0 +1,33 @@
+[build-system]
+requires      = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "mpeg-convert"
+version = "0.0.1"
+requires-python = ">=3.9"
+description = "A python tool based on ffmpeg that makes converting between different formats/codecs a whole lot easier for the inexperienced "
+keywords = ["ffmpeg", "convert", "codec"]
+readme = "README.md"
+authors = [{ name = "SomedudeX" }]
+license = { file = "LICENSE" }
+
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+
+dependencies = [
+    "rich>=13.7.0",
+    "python-ffmpeg>=2.0.10"
+]
+
+
+[project.urls]
+Homepage = "https://github.com/SomedudeX/mpeg-convert"
+
+
+[project.scripts]
+mpeg-convert = "mpeg_convert.__main__:main"
