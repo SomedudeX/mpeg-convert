@@ -4,7 +4,7 @@ A highly customizable<sup>[1](#Customizing)</sup> terminal-based [Python](https:
 
 FFmpeg is a powerful multimedia tool, but its many options<sup>[2](https://ffmpeg.org/ffmpeg.html)</sup> can be especially overwhelming for new users. This wrapper aims to simplify the process of working with the FFmpeg engine to convert between different video/audio formats for the folks who doesn't want to memorize twenty options to use FFmpeg. This program is not, however, a complete replacement for FFmpeg in any way. For that purpose, you should look look into other software such as [Handbrake](https://handbrake.fr/) or [DaVinci Resolve](https://www.blackmagicdesign.com/products/davinciresolve). 
 
-This project is now hosted on PyPi, however legacy releases can still be found on the right. 
+This project is now hosted on [PyPi](https://pypi.org/project/mpeg-convert), however legacy releases can still be found on the right. 
 
 ## Features
 
@@ -131,7 +131,7 @@ This format applies to existing questions as well.
 
  - [Demo](https://github.com/SomedudeX/mpeg-convert/raw/main/demo.mov)
  - [License](https://raw.githubusercontent.com/SomedudeX/mpeg-convert/main/LICENSE)
- - [Releases](https://github.com/SomedudeX/mpeg-convert/releases)
+ - [Project](https://pypi.org/project/mpeg-convert/#history)
 
 Contributions are welcome! If you encounter any problems or find any bugs, please feel free to open an issue. In the meantime, happy converting! 
 
