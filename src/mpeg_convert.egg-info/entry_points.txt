@@ -1,2 +1,0 @@
-[console_scripts]
-mpeg-convert = mpeg_convert.__main__:main
