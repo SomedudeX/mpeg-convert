@@ -4,7 +4,7 @@ A highly customizable<sup>[1](#Customizing)</sup> terminal-based [Python](https:
 
 FFmpeg is a powerful multimedia tool, but its many options<sup>[2](https://ffmpeg.org/ffmpeg.html)</sup> can be especially overwhelming for new users. This wrapper aims to simplify the process of working with the FFmpeg engine to convert between different video/audio formats for the folks who doesn't want to memorize twenty options to use FFmpeg. This program is not, however, a complete replacement for FFmpeg in any way. For that purpose, you should look look into other software such as [Handbrake](https://handbrake.fr/) or [DaVinci Resolve](https://www.blackmagicdesign.com/products/davinciresolve). 
 
-This tool is not tested or designed for multiple video or audio streams. 
+This project is now hosted on PyPi, however legacy releases can still be found on the right. 
 
 ## Features
 
