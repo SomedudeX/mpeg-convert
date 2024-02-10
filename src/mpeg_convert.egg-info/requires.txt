@@ -1,2 +1,0 @@
-rich>=13.7.0
-python-ffmpeg>=2.0.10
