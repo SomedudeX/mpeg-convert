@@ -1,46 +1,18 @@
 # -*- coding: utf-8 -*-
 
-
-# -*-  Style guide  -*-
-#
-# This project uses the following styles for token names
-#
-#     PascalCase       Class name
-#     snake_case       Variable or function/method name
-#     _underscore      Variable/function should be used only intenally in
-#                      the scope it's declared in (and should not be
-#                      modified by the end user)
-#
-# Because python does not have a reliable way of signalling the end
-# of a particular scope, method, or class, any class/method in this 
-# file will always terminate in `return` regardless of the return
-# type. 
-#
-# In addition, python's native type hinting is used whenever possible
-# in order to catch issues and minimize problems with static analyzers
-#
-# This project uses 4 spaces for indentation. 
-
-
 # -*- Customization -*-
 #
 # The options specified below are presented to you when converting a file. You
 # can customize these options to your liking. For more information/documentation
 # on how to customize these questions and parameters, head to the following link:
 #
-# https://github.com/SomedudeX/MPEG-Convert/tree/main?tab=readme-ov-file#customizing
+# https://github.com/SomedudeX/mpeg-convert/tree/main?tab=readme-ov-file#customizing
 
 
-from sys import platform
+# Use 'HEVC_ENCODER' and 'H264_ENCODER' for
+# H.264/5 encoding, especially if you're on macOS
 
-HEVC_ENCODER = "libx265"
-H264_ENCODER = "libx264"
-
-# On macOS, use apple's 'videotoolbox'
-# for faster encoding speed
-if platform == "darwin":
-    HEVC_ENCODER = "hevc_videotoolbox"
-    H264_ENCODER = "h264_videotoolbox"
+from .utils import HEVC_ENCODER, H264_ENCODER
 
 
 VIDEO_OPTIONS = [
@@ -141,7 +113,10 @@ AUDIO_OPTIONS = [
 ]
 
 # The options specified below are the default options that the program will use when 
-# you use the '-d' or '--default' flag. 
+# you use the '-d' or '--default' flag. The keys represent an ffmpeg option (stripped  
+# of the '-' in front), and the value represent the values (duh). 
+#
+# e.g. { "preset": "veryslow" } is the equivalent of '-preset veryslow'
 
 DEFAULT_OPTIONS = {
     "r": "24",
