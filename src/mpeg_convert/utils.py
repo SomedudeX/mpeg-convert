@@ -1,13 +1,17 @@
+"""Small utility functions and variables that does not belong in a particular module"""
+
 import os
 import sys
 import platform
 import subprocess
 
+from sys import platform as kernal
+
 from rich.console import Console
 
 
 HELP_TEXT = ("\
-Usage: mpeg-convert \\[options] <file.in> <file.out>                 \n\
+Usage: mpeg-convert \\[options] <file.in> <file.out>                    \n\
                                                                         \n\
 Required args:                                                          \n\
     file.in        The path to the file to convert from                 \n\
@@ -29,7 +33,16 @@ for more documentation on mpeg-convert.                                   \
 ")
 
 
-VERSION = "v0.0.1"
+VERSION = "v0.0.2"
+
+HEVC_ENCODER = "libx265"
+H264_ENCODER = "libx264"
+
+# On macOS, use apple's 'videotoolbox'
+# for faster encoding speed
+if kernal == "darwin":
+    HEVC_ENCODER = "hevc_videotoolbox"
+    H264_ENCODER = "h264_videotoolbox"
 
     
 def print_help():
@@ -46,6 +59,7 @@ def print_version():
     Console().print(f"Program  : {_prgram_version}", highlight = False)
     Console().print(f"Python   : {_python_version}", highlight = False)
     Console().print(f"Platform : {_system_version}", highlight = False)
+    Console().print(f"\nMade with ♡ by Zichen")
 
 
 def readable_size(_path: str, _decimal_point = 2) -> str:
@@ -62,22 +76,24 @@ def readable_size(_path: str, _decimal_point = 2) -> str:
     return f"{size:.{_decimal_point}f} pb"
     
     
-def handle_customize() -> None:
+def handle_customize(_do_log: bool = True) -> None:
     file_path = os.path.realpath(__file__)
     file_dir = os.path.dirname(file_path)
-    Console().log("[Info] Opening customization options", highlight = False)
-    
+    if _do_log:
+        Console().log("[Info] Opening customization options", highlight = False)
+        
     if platform.system() == "Darwin":
         subprocess.call(["open", f"{file_dir}/customization.py"])
     elif platform.system() == "Windows":
         os.startfile(f"{file_dir}/customization.py")
     else: 
         subprocess.call(["xdg-open", f"{file_dir}/customization.py"])
-    Console().log(
-        "[Info] Succesfully opened customization options in default text editor", 
-        highlight = False
-    )
     
+    if _do_log:
+        Console().log(
+            "[Info] Succesfully opened customization options in default text editor", 
+            highlight = False
+        )
     return
     
 
@@ -102,9 +118,12 @@ class ModuleCheck():
         try:
             from . import customization
         except Exception as e:
-            print(f" \033[91m[Fatal] Customization script is invalid or incorrectly formatted")
+            print(f" \033[91m[Fatal] Customization.py is invalid or incorrectly formatted")
             print(f" - Error message: {str(e)}")
+            print(f" - Please correct any errors in customization.py before starting the program")
+            print(f" - Opening customization.py in your default editor")
             print(f" - Mpeg-convert terminating with exit code -1")
+            handle_customize(False)
             raise SystemExit(-1)
         return
             
