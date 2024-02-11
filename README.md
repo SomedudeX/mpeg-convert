@@ -123,13 +123,13 @@ This format applies to existing questions as well.
 * Common pitfalls:
   + Does the output file have an extension?
   + Does the extension match the codec?
-    - `HEVC` with `.mp4`  
+    - `HEVC` with `.mp4`
     - `ALAC` with `.m4a`
   + Is the encoder installed on your system?
 
 ## Resources
 
- - [Demo](https://github.com/SomedudeX/mpeg-convert/raw/main/demo.mov)
+ - [Demo](https://github.com/SomedudeX/mpeg-convert/raw/main/demo.mp4)
  - [License](https://raw.githubusercontent.com/SomedudeX/mpeg-convert/main/LICENSE)
  - [Project](https://pypi.org/project/mpeg-convert/#history)
 
