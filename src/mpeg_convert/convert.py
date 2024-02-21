@@ -31,7 +31,7 @@ class Program:
         self.error_console = Console(style="red", highlight=False)
 
         self.verbose = False
-        self.default = False
+        self.options = {}
 
         if not sys.stdout.isatty():
             self.console.log("[yellow][Warning] Mpeg-convert is not outputting to a tty")
@@ -43,7 +43,7 @@ class Program:
             self.input = _parsed_args["input"]
             self.output = _parsed_args["output"]
             self.verbose = _parsed_args["verbose"]
-            self.default = _parsed_args["default"]
+            self.options = _parsed_args["options"]
         except Exception as e:
             _error = str(e)
             raise utils.FatalError(
@@ -61,7 +61,6 @@ class Program:
         self.last_frame = None
 
         self.media = None
-        self.options = None
         self.options_handler = None
 
         self.total_secs = None
@@ -111,19 +110,20 @@ class Program:
             self.total_frame = self.total_secs * self.framerate
         except ZeroDivisionError:
             self.error_console.log(f"[yellow][Warning] Failed retrieving total frames")
-            self.error_console.log(f"[yellow] - Mpeg-convert uses video frames to calculate remaining time")
-            self.error_console.log(f"[yellow] - The progress bar will be indeterminate")
-            self.error_console.log(f"[yellow] - Perhaps you are converting an audio file?")
+            self.error_console.log(f"[yellow]- Mpeg-convert uses video frames to calculate remaining time")
+            self.error_console.log(f"[yellow]- The progress bar will be indeterminate")
+            self.error_console.log(f"[yellow]- Perhaps you are converting an audio file?")
 
         # MPEG-Convert has only been tested for a max
         # of 3 streams (video, audio, subtitles)
         if len(self.media.metadata['streams']) > 3:
             self.console.log(f"[yellow][Warning] Multiple video/audio streams detected")
-            self.console.log(f" - Mpeg-convert has not been tested for multiple video/audio streams")
-            self.console.log(f" - You are entering unknown territory if you proceed! ")
-            self.console.log(f" - This could also be a false detection")
+            self.console.log(f"- Mpeg-convert has not been tested for multiple video/audio streams")
+            self.console.log(f"- You are entering unknown territory if you proceed! ")
+            self.console.log(f"- This could also be a false detection")
 
-        MetadataLogger.log_metadata(self.media.metadata)
+        if self.verbose:
+            MetadataLogger.log_metadata(self.media.metadata)
 
         self.options_handler = options.OptionsHandler(
             self.media.metadata,
@@ -131,8 +131,9 @@ class Program:
             self.media.video_stream,
             self.output
         )
-
-        self.options = self.options_handler.ask_encode_options(self.default)
+        
+        self.options = self.options_handler.ask_encode_options(self.options)
+        self.console.print()
         self.console.log(f"[Info] Finished gathering encoding options")
         return
 
@@ -142,9 +143,10 @@ class Program:
         from Program::process() to display progress and pass other
         relevant information and arguments to the ffmpeg engine
         """
+        
         self.instance = (
             FFmpeg()
-            .option(self.options_handler.replace)
+            .option("y")
             .input(self.input)
             .output(
                 self.output,
@@ -152,8 +154,9 @@ class Program:
             )
         )
 
-        self.last_frame: int = 0
-        self.start_time: float = time.time()
+        self.last_frame = 0
+        self.start_time = time.time()
+        
 
         with ProgressBar(
                 TextColumn("[progress.description]{task.description}"),
@@ -173,7 +176,10 @@ class Program:
 
             @self.instance.on("start")
             def show_args(_args: list[str]):
-                self.console.log(f"[Info] Initiated FFmpeg task with the following command: {_args}")
+                _e = ""
+                for _arg in _args:
+                    _e = _e + _arg + " "
+                self.console.log(f"[Info] Initiated FFmpeg task with the following command: \n'{_e[:-1]}'")
 
             @self.instance.on("stderr")
             def show_cout(_msg: str) -> None:
@@ -198,7 +204,6 @@ class Program:
                 1,
                 "An FFmpeg exception has occurred",
                 f" - Error message from FFmpeg: '{_error.message}'",
-                f" - Arguments to execute FFmpeg: {_error.arguments}",
                 f" - Use the '-v' or '--verbose' option to hear FFmpeg output",
                 f" - Common pitfalls: ",
                 f"   * Does the output file have an extension?",

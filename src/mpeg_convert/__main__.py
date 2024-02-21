@@ -40,19 +40,18 @@ from mpeg_convert.utils import FatalError
 
 def main():
     _printer = Console(highlight=False)
-    _err_printer = Console(highlight=False, style="red")
     traceback.install()
 
     try:
         instance = Program()
         instance.run()
     except FatalError as e:
-        _err_printer.log(f"{e.msg}")
-        _err_printer.log(f"{e.note}")
-        _err_printer.log(f"[Info] Mpeg-convert terminating with exit code {e.code}")
+        _printer.log(f"[red]{e.msg}")
+        _printer.log(f"[red]{e.note}")
+        _printer.log(f"[Info] Mpeg-convert terminating with exit code {e.code}")
         sys.exit(1)
     except KeyboardInterrupt:
-        _printer.print()
+        _printer.print("\n")
         _printer.log("[yellow][Warning] Mpeg-convert received KeyboardInterrupt")
         _printer.log("[yellow][Warning] Force quitting with os._exit()")
         os._exit(0)

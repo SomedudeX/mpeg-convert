@@ -41,7 +41,7 @@ class OptionsHandler:
 
     def ask_encode_options(
             self,
-            _default: bool = False
+            _default: dict = {}
     ) -> dict[str, str]:
         """Asks the user for encoding options
         
@@ -66,11 +66,11 @@ class OptionsHandler:
             
             e.g. { 'c:a': 'libmp3lame' } corresponds to '-c:a libmp3lame' 
         """
-        if _default:
+        if _default != {}:
             if os.path.isfile(self._output):
                 self.console.print()
                 self.replace = Prompt.ask(
-                    " -  Replace existing output path",
+                    " >  Replace existing output path",
                     choices=["y", "n"],
                     default="n"
                 )
@@ -80,18 +80,17 @@ class OptionsHandler:
                     self.console.log("[Info] Finished gathering encoding options")
                     self.console.log("[Info] User declined operation, terminating")
                     raise SystemExit(0)
-
-            self.options = DEFAULT_OPTIONS
-            return self.options
+            
+            return _default
 
         self.console.print()
-        self.console.print(" -  Encode for...")
+        self.console.print(" >  Encode for...")
         self.console.print("[1] Audio only")
         self.console.print("[2] Video only")
         self.console.print("[3] Video and audio (default)")
         self.console.print("[4] Skip encode options")
         _encode = Prompt.ask(
-            " -  Select an option",
+            " >  Select an option",
             choices=["1", "2", "3", "4"],
             default="3"
         )
@@ -113,7 +112,7 @@ class OptionsHandler:
         if os.path.isfile(self._output):
             self.console.print()
             self.replace = Prompt.ask(
-                " -  Replace existing output path",
+                " >  Replace existing output path",
                 choices=["y", "n"],
                 default="n"
             )
@@ -126,15 +125,15 @@ class OptionsHandler:
 
         self.console.print()
         _metadata_strip = Prompt.ask(
-            " -  Enable file metadata stripping",
+            " >  Enable file metadata stripping",
             choices=["y", "n"],
             default="y"
         )
 
         self.console.print()
         _additional_commands = Prompt.ask(
-            " -  Custom options to ffmpeg ('-option value -option2 value...')\n" +
-            " -  Use empty field to skip"
+            " >  Custom options to ffmpeg ('-option value -option2 value...')\n" +
+            " >  Use empty field to skip"
         )
 
         if _metadata_strip == "y":
@@ -171,8 +170,27 @@ class OptionsHandler:
 
         self.console.print()
         self.console.print("[bold] -*- Audio options -*-")
-        for _question in AUDIO_OPTIONS:
-            _ret = _ret | self._ask_question(_question)
+        for _index, _question in enumerate(AUDIO_OPTIONS):
+            try:
+                _ret = _ret | self._ask_question(_question)
+            except KeyError as e: 
+                self.error_console.print()
+                self.error_console.log(f"[Error] Audio question {_index + 1} has invalid key {e}")
+                self.error_console.log(f"- Use the '--customize' flag to see the error")
+                self.error_console.log(f"- Mpeg-convert may not function currectly")
+                self.error_console.log(f"- Skipping to the next audio question")
+            except ValueError as e:
+                self.error_console.print()
+                self.error_console.log(f"[Error] Audio question {_index + 1} has invalid option(s)")
+                self.error_console.log(f"- Use the '--customize' flag to see the error")
+                self.error_console.log(f"- Mpeg-convert may not function currectly")
+                self.error_console.log(f"- Skipping to the next audio question")
+            except IndexError as e:
+                self.error_console.print()
+                self.error_console.log(f"[Error] Audio question {_index + 1} has invalid option(s)")
+                self.error_console.log(f"- Use the '--customize' flag to see the error")
+                self.error_console.log(f"- Mpeg-convert may not function currectly")
+                self.error_console.log(f"- Skipping to the next audio question")
 
         return _ret
 
@@ -199,8 +217,27 @@ class OptionsHandler:
 
         self.console.print()
         self.console.print("[bold] -*- Video options -*-")
-        for _question in VIDEO_OPTIONS:
-            _ret = _ret | self._ask_question(_question)
+        for _index, _question in enumerate(VIDEO_OPTIONS):
+            try:
+                _ret = _ret | self._ask_question(_question)
+            except KeyError as e: 
+                self.error_console.print()
+                self.error_console.log(f"[Error] Video question {_index + 1} has invalid key {e}")
+                self.error_console.log(f"- Use the '--customize' flag to see the error")
+                self.error_console.log(f"- Mpeg-convert may not function currectly")
+                self.error_console.log(f"- Skipping to the next video question")
+            except ValueError as e:
+                self.error_console.print()
+                self.error_console.log(f"[Error] Audio question {_index + 1} has invalid option(s)")
+                self.error_console.log(f"- Use the '--customize' flag to see the error")
+                self.error_console.log(f"- Mpeg-convert may not function currectly")
+                self.error_console.log(f"- Skipping to the next video question")
+            except IndexError as e:
+                self.error_console.print()
+                self.error_console.log(f"[Error] Audio question {_index + 1} has invalid option(s)")
+                self.error_console.log(f"- Use the '--customize' flag to see the error")
+                self.error_console.log(f"- Mpeg-convert may not function currectly")
+                self.error_console.log(f"- Skipping to the next video question")
 
         return _ret
 
@@ -218,34 +255,33 @@ class OptionsHandler:
         """
         _ret: dict = {}
 
-        if _question["option"][0] == "-":  # The python-ffmpeg api inserts a dash (-) symbol
-            _question["option"] = _question["option"][1:]  # for you, so we have to get rid of the dash.
-
+        if _question["option"][0] == "-":                   # The python-ffmpeg api inserts a dash (-) symbol
+            _question["option"] = _question["option"][1:]   # for you, so we have to get rid of the dash.
+        
         if _question["type"] == "choice":
             _custom_index = len(_question["choices"]) + 0
             _none_index = len(_question["choices"]) + 1
             _total_length = len(_question["choices"]) + 2
 
             self.console.print()
-            self.console.print(" - ", _question["title"])
+            self.console.print(" > ", _question["title"])
             self._print_choices(
                 _question["choices"],
                 _question["default"]
             )
 
             _answer_index = Prompt.ask(
-                " -  Select an option",
+                " >  Select an option",
                 choices=[str(i + 1) for i in range(_total_length)],
                 default=str(_question["default"]),
-
             )
 
             _answer_index = int(_answer_index) - 1
             if _answer_index == _none_index:
-                self.console.print(" -  Option removed from ffmpeg arguments")
+                self.console.print(" >  Option removed from ffmpeg arguments")
                 return _ret
             if _answer_index == _custom_index:
-                _ret[_question["option"]] = Prompt.ask(" -  Custom value")
+                _ret[_question["option"]] = Prompt.ask(" >  Custom value")
                 return _ret
 
             _ret[_question["option"]] = _question["choices"][_answer_index][1]

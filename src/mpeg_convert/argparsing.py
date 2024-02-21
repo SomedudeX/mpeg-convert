@@ -4,23 +4,27 @@ import os
 import sys
 
 from mpeg_convert import utils
+from mpeg_convert.customization import *
 
 from rich.console import Console
 
 input_path = ""
 output_path = ""
 verbose = False
-default = False
+options = {}
+
+_option_name = ""
 
 
 def _expand_paths() -> None:
     global input_path
     global output_path
 
-    Console().log(
-        f"[Info] Received file paths: \n'{input_path}', \n'{output_path}'",
-        highlight=False
-    )
+    if verbose:
+        Console().log(
+            f"[Info] Received file paths: \n'{input_path}', \n'{output_path}'",
+            highlight=False
+        )
 
     _cwd = os.getcwd() + "/"
     if input_path[0] != "/" and input_path[0] != "~":
@@ -28,10 +32,11 @@ def _expand_paths() -> None:
     if output_path[0] != "/" and output_path[0] != "~":
         output_path = _cwd + output_path
 
-    Console().log(
-        f"[Info] Parsed file paths: \n'{input_path}', \n'{output_path}'",
-        highlight=False
-    )
+    if verbose:
+        Console().log(
+            f"[Info] Parsed file paths: \n'{input_path}', \n'{output_path}'",
+            highlight=False
+        )
 
     return
 
@@ -49,8 +54,8 @@ def _validate_paths() -> None:
 
     if verbose:
         Console().log(f"[yellow][Warning] Using verbose mode", highlight=False)
-    if default:
-        Console().log(f"[yellow][Warning] Using all default options", highlight=False)
+    if options:
+        Console().log(f"[yellow][Warning] Using custom preset options ('{_option_name}')", highlight=False)
     return
 
 
@@ -69,7 +74,8 @@ def _parse_positional(value: str) -> None:
 
 def _parse_flag(value: str) -> None:
     global verbose
-    global default
+    global options
+    global _option_name
 
     if value == "--version":
         utils.print_version()
@@ -80,15 +86,12 @@ def _parse_flag(value: str) -> None:
     elif value == "-h" or value == "--help":
         utils.print_help()
         sys.exit(0)
-    elif value == "-d" or value == "--default":
-        default = True
-        return
     elif value == "-v" or value == "--verbose":
         verbose = True
         return
-    elif value == "-vd" or value == "-dv":
-        default = True
-        verbose = True
+    elif value[2:] in PRESETS:
+        _option_name = value[2:]
+        options = PRESETS[value[2:]]
         return
     else:
         raise Exception(f"unrecognized option '{value}'")
@@ -108,7 +111,7 @@ def parse_args() -> dict:
     global input_path
     global output_path
     global verbose
-    global default
+    global options
 
     if len(sys.argv) == 1:
         utils.print_help()
@@ -132,7 +135,7 @@ def parse_args() -> dict:
         "input": input_path,
         "output": output_path,
         "verbose": verbose,
-        "default": default
+        "options": options
     }
 
     return ret
