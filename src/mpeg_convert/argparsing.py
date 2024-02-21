@@ -3,7 +3,7 @@
 import os
 import sys
 
-from src.mpeg_convert import utils
+from mpeg_convert import utils
 
 from rich.console import Console
 

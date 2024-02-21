@@ -22,7 +22,7 @@
 # This project uses 4 spaces for indentation. 
 
 
-from src.mpeg_convert.utils import ModuleCheck
+from mpeg_convert.utils import ModuleCheck
 
 # Check module health before importing
 ModuleCheck.check_required()
@@ -34,8 +34,8 @@ import sys
 from rich import traceback
 from rich.console import Console
 
-from src.mpeg_convert.convert import Program
-from src.mpeg_convert.utils import FatalError
+from mpeg_convert.convert import Program
+from mpeg_convert.utils import FatalError
 
 
 def main():

@@ -114,7 +114,7 @@ class ModuleCheck:
     @staticmethod
     def check_customize() -> None:
         try:
-            from src.mpeg_convert import customization
+            from mpeg_convert import customization
         except Exception as e:
             print(f" \033[91m[Fatal] Customization.py is invalid or incorrectly formatted")
             print(f" - Error message: {str(e)}")
