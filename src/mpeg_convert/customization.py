@@ -112,19 +112,19 @@ AUDIO_OPTIONS = [
     }
 ]
 
-# The options specified below are the default options that the program will use when 
-# you use the '-d' or '--default' flag. The keys represent an ffmpeg option (stripped  
-# of the '-' in front), and the value represent the values (duh). 
-#
-# e.g. { "preset": "veryslow" } is the equivalent of '-preset veryslow'
+PRESETS = {
 
-DEFAULT_OPTIONS = {
-    "r": "24",
-    "s": "1920x1080",
-    "c:v": H264_ENCODER,
-    "c:a": "libmp3lame", 
-    "b:a": "192k", 
-    "ar": "44100", 
-    "crf": "21", 
-    "ac": "2"
+    "default-video": {
+        "r": "24",
+        "s": "1920x1080",
+        "c:v": H264_ENCODER,
+        "crf": "18"
+    },
+    
+    "default-audio": {
+        "ac": "2",
+        "ar": "48000", 
+        "b:a": "320k", 
+        "c:a": "libmp3lame", 
+    }
 }

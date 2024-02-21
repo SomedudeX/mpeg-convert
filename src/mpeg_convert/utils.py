@@ -21,17 +21,18 @@ Optional args:                                                          \n\
     --customize     Opens customization.py in your default text editor  \n\
     -h  --help      Prints this help text and exits                     \n\
     -v  --verbose   Outputs all ffmpeg log to the console               \n\
-    -d  --default   Use all default options (customizable from script)  \n\
+                                                                        \n\
+    --<preset-name> Use one of the presets in customization.py          \n\
                                                                         \n\
 Custom encoders can be listed by 'ffmpeg -codecs'. Additionally, FFmpeg \n\
 will automatically detect the file extensions/containers to convert     \n\
 to/from; you do not need to specify anything.                           \n\
                                                                         \n\
 Head to https://github.com/SomedudeX/mpeg-convert/blob/main/README.md   \n\
-for more documentation on mpeg-convert.                                   \
+for more documentation on the usage and customization of mpeg-convert.    \
 ")
 
-VERSION = "v0.0.2"
+VERSION = "v0.1.0"
 
 HEVC_ENCODER = "libx265"
 H264_ENCODER = "libx264"

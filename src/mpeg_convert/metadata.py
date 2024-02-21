@@ -36,34 +36,20 @@ class MetadataLogger:
         """
 
         # The notorious 'one-liners', except 14 times
-        try:
-            _idx: str = f"{_video_stream['index']}"
-        except KeyError:
-            _idx: str = f"N/A"
-        try:
-            _col: str = f"{_video_stream['color_space']}"
-        except KeyError:
-            _col: str = f"N/A"
-        try:
-            _fmt: str = f"{_video_stream['codec_long_name']}"
-        except KeyError:
-            _fmt: str = f"N/A"
-        try:
-            _res: str = f"{_video_stream['width']}x{_video_stream['height']}"
-        except KeyError:
-            _res: str = f"N/A"
-        try:
-            _fps: str = f"{MetadataLogger._get_framerate(_video_stream['avg_frame_rate'])}"
-        except KeyError:
-            _fps: str = f"N/A"
-        try:
-            _dur: str = f"{round(float(_video_stream['duration']), 2)}"
-        except KeyError:
-            _dur: str = f"N/A"
-        try:
-            _fra: str = f"{round(float(_fps) * float(_dur), 2)}"
-        except KeyError:
-            _fra: str = f"N/A"
+        try: _idx: str = f"{_video_stream['index']}"
+        except KeyError: _idx: str = f"N/A"
+        try: _col: str = f"{_video_stream['color_space']}"
+        except KeyError: _col: str = f"N/A"
+        try: _fmt: str = f"{_video_stream['codec_long_name']}"
+        except KeyError: _fmt: str = f"N/A"
+        try: _res: str = f"{_video_stream['width']}x{_video_stream['height']}"
+        except KeyError: _res: str = f"N/A"
+        try: _fps: str = f"{MetadataLogger._get_framerate(_video_stream['avg_frame_rate'])}"
+        except KeyError: _fps: str = f"N/A"
+        try: _dur: str = f"{round(float(_video_stream['duration']), 2)}"
+        except KeyError: _dur: str = f"N/A"
+        try: _fra: str = f"{round(float(_fps) * float(_dur), 2)}"
+        except KeyError: _fra: str = f"N/A"
 
         Console().log(f"- Video (source stream {_idx})", highlight=False)
         Console().log(f"|    Video codec      : {_fmt}", highlight=False)
@@ -84,34 +70,20 @@ class MetadataLogger:
         """
 
         # The notorious 'one-liners', except 14 times
-        try:
-            _idx: str = f"{_audio_stream['index']}"
-        except KeyError:
-            _idx: str = f"N/A"
-        try:
-            _fmt: str = f"{_audio_stream['codec_long_name']}"
-        except KeyError:
-            _fmt: str = f"N/A"
-        try:
-            _prf: str = f"{_audio_stream['profile']}"
-        except KeyError:
-            _prf: str = f"N/A"
-        try:
-            _smp: str = f"{_audio_stream['sample_rate']} Hz"
-        except KeyError:
-            _smp: str = f"N/A"
-        try:
-            _chn: str = f"{_audio_stream['channels']}"
-        except KeyError:
-            _chn: str = f"N/A"
-        try:
-            _lay: str = f"{_audio_stream['channel_layout'].capitalize()}"
-        except KeyError:
-            _lay: str = f"N/A"
-        try:
-            _btr: str = f"{int(_audio_stream['bit_rate']) // 1000} kb/s"
-        except KeyError:
-            _btr: str = f"N/A"
+        try: _idx: str = f"{_audio_stream['index']}"
+        except KeyError: _idx: str = f"N/A"
+        try: _fmt: str = f"{_audio_stream['codec_long_name']}"
+        except KeyError: _fmt: str = f"N/A"
+        try: _prf: str = f"{_audio_stream['profile']}"
+        except KeyError: _prf: str = f"N/A"
+        try: _smp: str = f"{_audio_stream['sample_rate']} Hz"
+        except KeyError: _smp: str = f"N/A"
+        try: _chn: str = f"{_audio_stream['channels']}"
+        except KeyError: _chn: str = f"N/A"
+        try: _lay: str = f"{_audio_stream['channel_layout'].capitalize()}"
+        except KeyError: _lay: str = f"N/A"
+        try: _btr: str = f"{int(_audio_stream['bit_rate']) // 1000} kb/s"
+        except KeyError: _btr: str = f"N/A"
 
         Console().log(f"- Audio (source stream {_idx})", highlight=False)
         Console().log(f"|    Audio codec      : {_fmt}", highlight=False)
@@ -119,15 +91,15 @@ class MetadataLogger:
         Console().log(f"|    Audio samplerate : {_smp}", highlight=False)
         Console().log(f"|    Audio channels   : {_chn}", highlight=False)
         Console().log(f"|    Audio layout     : {_lay}", highlight=False)
-        Console().log(f"|    wAudio bitrate    : {_btr}", highlight=False)
+        Console().log(f"|    Audio bitrate    : {_btr}", highlight=False)
         return
 
     @staticmethod
-    def _get_framerate(_fps: str) -> str:  # Static overload for MetadataManager::get_framerate()
-        _numerator = ""  # It is a member of MetadataLogger because python does
-        for _ in range(len(_fps)):  # not support function overloading. See get_framerate()
-            if _fps[0] != "/":  # method from class MetadataManager for docs if you are
-                _numerator += _fps[0]  # contributing
+    def _get_framerate(_fps: str) -> str:   # Static overload for MetadataManager::get_framerate()
+        _numerator = ""                     # It is a member of MetadataLogger because python does
+        for _ in range(len(_fps)):          # not support function overloading. See get_framerate()
+            if _fps[0] != "/":              # method from class MetadataManager for docs if you are
+                _numerator += _fps[0]       # contributing
                 _fps = _fps[1:]
                 continue
             _fps = _fps[1:]
@@ -151,7 +123,7 @@ class MetadataManager:
         """Initializes an instance of `MediaManager`"""
         self.video_stream = None
         self.audio_stream = None
-        self.metadata = None
+        self.metadata = {}
 
         self.console = Console(highlight=False)
 
