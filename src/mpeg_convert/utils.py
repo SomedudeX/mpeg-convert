@@ -5,10 +5,9 @@ import sys
 import platform
 import subprocess
 
-from sys import platform as kernal
+from sys import platform as kernel
 
 from rich.console import Console
-
 
 HELP_TEXT = ("\
 Usage: mpeg-convert \\[options] <file.in> <file.out>                    \n\
@@ -32,7 +31,6 @@ Head to https://github.com/SomedudeX/mpeg-convert/blob/main/README.md   \n\
 for more documentation on mpeg-convert.                                   \
 ")
 
-
 VERSION = "v0.0.2"
 
 HEVC_ENCODER = "libx265"
@@ -40,65 +38,65 @@ H264_ENCODER = "libx264"
 
 # On macOS, use apple's 'videotoolbox'
 # for faster encoding speed
-if kernal == "darwin":
+if kernel == "darwin":
     HEVC_ENCODER = "hevc_videotoolbox"
     H264_ENCODER = "h264_videotoolbox"
 
-    
+
 def print_help():
     """Prints the help usage to the console"""
-    Console().print(HELP_TEXT, highlight = False)
-    
-    
+    Console().print(HELP_TEXT, highlight=False)
+
+
 def print_version():
     """Prints the version information to the console"""
     _prgram_version = VERSION
-    _python_version  = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    _python_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
     _system_version = f"{sys.platform.capitalize()} ({platform.architecture()[0]} {platform.machine()})"
-    
-    Console().print(f"Program  : {_prgram_version}", highlight = False)
-    Console().print(f"Python   : {_python_version}", highlight = False)
-    Console().print(f"Platform : {_system_version}", highlight = False)
+
+    Console().print(f"Program  : {_prgram_version}", highlight=False)
+    Console().print(f"Python   : {_python_version}", highlight=False)
+    Console().print(f"Platform : {_system_version}", highlight=False)
     Console().print(f"\nMade with ♡ by Zichen")
 
 
-def readable_size(_path: str, _decimal_point = 2) -> str:
+def readable_size(_path: str, _decimal_point=2) -> str:
     """Calculates the size of a particular file on disk and returns the
     size in a human-readable fashion
     """
     size: float = os.path.getsize(_path)
-    
+
     for i in ["bytes", "kb", "mb", "gb", "tb", "pb"]:
         if size < 1024.0:
             return f"{size:.{_decimal_point}f} {i}"
         size /= 1024.0
-        
+
     return f"{size:.{_decimal_point}f} pb"
-    
-    
+
+
 def handle_customize(_do_log: bool = True) -> None:
     file_path = os.path.realpath(__file__)
     file_dir = os.path.dirname(file_path)
     if _do_log:
-        Console().log("[Info] Opening customization options", highlight = False)
-        
+        Console().log("[Info] Opening customization options", highlight=False)
+
     if platform.system() == "Darwin":
         subprocess.call(["open", f"{file_dir}/customization.py"])
     elif platform.system() == "Windows":
         os.startfile(f"{file_dir}/customization.py")
-    else: 
+    else:
         subprocess.call(["xdg-open", f"{file_dir}/customization.py"])
-    
+
     if _do_log:
         Console().log(
-            "[Info] Succesfully opened customization options in default text editor", 
-            highlight = False
+            "[Info] Successfully opened customization options in default text editor",
+            highlight=False
         )
     return
-    
 
-class ModuleCheck():
-    
+
+class ModuleCheck:
+
     @staticmethod
     def check_required() -> None:
         try:
@@ -112,11 +110,11 @@ class ModuleCheck():
             print(f" - Mpeg-convert terminating with exit code -1")
             raise SystemExit(-1)
         return
-        
+
     @staticmethod
     def check_customize() -> None:
         try:
-            from . import customization
+            from src.mpeg_convert import customization
         except Exception as e:
             print(f" \033[91m[Fatal] Customization.py is invalid or incorrectly formatted")
             print(f" - Error message: {str(e)}")
@@ -126,23 +124,23 @@ class ModuleCheck():
             handle_customize(False)
             raise SystemExit(-1)
         return
-            
+
 
 class FatalError(Exception):
     """Represents a fatal error encountered during the execution of the program"""
-    
+
     def __init__(
-        self,
-        _error_code: int = 1,
-        _error_msg: str = "An unknown fatal error occured",
-        *_notes: str
+            self,
+            _error_code: int = 1,
+            _error_msg: str = "An unknown fatal error occurred",
+            *_notes: str
     ) -> None:
         """Initializes a FatalError object"""
-        self.msg  = f"[Fatal] {_error_msg}"
+        self.msg = f"[Fatal] {_error_msg}"
         self.code = f"{_error_code}"
         self.note = f""
         for note in _notes:
             self.note += f"\n{note}"
-        
+
         self.note = self.note[1:]
         return

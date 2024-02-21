@@ -3,62 +3,61 @@
 import os
 import sys
 
-from . import utils
+from src.mpeg_convert import utils
 
 from rich.console import Console
 
-
-input_path   = ""
-output_path  = ""
-verbose      = False
-default      = False
+input_path = ""
+output_path = ""
+verbose = False
+default = False
 
 
 def _expand_paths() -> None:
     global input_path
     global output_path
-    
+
     Console().log(
         f"[Info] Received file paths: \n'{input_path}', \n'{output_path}'",
-        highlight = False
+        highlight=False
     )
-    
+
     _cwd = os.getcwd() + "/"
     if input_path[0] != "/" and input_path[0] != "~":
         input_path = _cwd + input_path
     if output_path[0] != "/" and output_path[0] != "~":
         output_path = _cwd + output_path
-        
+
     Console().log(
         f"[Info] Parsed file paths: \n'{input_path}', \n'{output_path}'",
-        highlight = False
+        highlight=False
     )
-    
+
     return
-    
+
 
 def _validate_paths() -> None:
     global input_path
     global output_path
-    
+
     if len(input_path) == 0:
         raise Exception(f"input file path not specified")
     if len(output_path) == 0:
         raise Exception(f"output file path not specified")
     if not os.path.isfile(input_path):
         raise Exception(f"input path '{input_path}' is invalid")
-        
-    if verbose: 
-        Console().log(f"[yellow][Warning] Using verbose mode", highlight = False)
-    if default: 
-        Console().log(f"[yellow][Warning] Using all default options", highlight = False)
+
+    if verbose:
+        Console().log(f"[yellow][Warning] Using verbose mode", highlight=False)
+    if default:
+        Console().log(f"[yellow][Warning] Using all default options", highlight=False)
     return
 
 
 def _parse_positional(value: str) -> None:
     global input_path
     global output_path
-    
+
     if len(input_path) == 0:
         input_path = value
         return
@@ -71,7 +70,7 @@ def _parse_positional(value: str) -> None:
 def _parse_flag(value: str) -> None:
     global verbose
     global default
-    
+
     if value == "--version":
         utils.print_version()
         sys.exit(0)
@@ -105,7 +104,7 @@ def parse_args() -> dict:
 
     Commands can be listed with the option `-h` or `--help`. 
     """
-    
+
     global input_path
     global output_path
     global verbose
@@ -114,7 +113,7 @@ def parse_args() -> dict:
     if len(sys.argv) == 1:
         utils.print_help()
         sys.exit(0)
-    
+
     is_flag = True
     for index, value in enumerate(sys.argv):
         if index == 0:
@@ -125,14 +124,15 @@ def parse_args() -> dict:
             _parse_flag(value)
         if is_flag == False:
             _parse_positional(value)
-    
+
     _validate_paths()
     _expand_paths()
-    
-    ret = {}
-    ret["input"]   = input_path
-    ret["output"]  = output_path
-    ret["verbose"] = verbose
-    ret["default"] = default
+
+    ret = {
+        "input": input_path,
+        "output": output_path,
+        "verbose": verbose,
+        "default": default
+    }
 
     return ret
