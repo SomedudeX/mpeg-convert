@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mpeg-convert"
-version = "0.0.3"
+version = "0.1.0"
 requires-python = ">=3.9"
 description = "A python tool based on ffmpeg that makes converting between different formats/codecs a whole lot easier for the inexperienced "
 authors = [{ name = "Zichen", email = "zichenziv@icloud.com" }]
