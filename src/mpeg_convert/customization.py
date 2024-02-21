@@ -12,7 +12,7 @@
 # Use 'HEVC_ENCODER' and 'H264_ENCODER' for
 # H.264/5 encoding, especially if you're on macOS
 
-from src.mpeg_convert.utils import HEVC_ENCODER, H264_ENCODER
+from mpeg_convert.utils import HEVC_ENCODER, H264_ENCODER
 
 
 VIDEO_OPTIONS = [

@@ -3,10 +3,10 @@
 import sys
 import time
 
-from src.mpeg_convert import utils
-from src.mpeg_convert import options
-from src.mpeg_convert import metadata
-from src.mpeg_convert import argparsing
+from mpeg_convert import utils
+from mpeg_convert import options
+from mpeg_convert import metadata
+from mpeg_convert import argparsing
 
 from ffmpeg import FFmpeg, FFmpegError, Progress
 
@@ -15,7 +15,7 @@ from rich.progress import BarColumn, TimeRemainingColumn
 from rich.progress import Progress as ProgressBar
 from rich.console import Console
 
-from src.mpeg_convert.metadata import MetadataLogger
+from mpeg_convert.metadata import MetadataLogger
 
 
 class Program:

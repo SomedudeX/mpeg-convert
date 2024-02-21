@@ -7,8 +7,7 @@ from rich.console import Console
 
 
 class MetadataLogger:
-    """The MetadataLogger()'s only purpose is to log the metadata
-    """
+    """The MetadataLogger()'s only purpose is to log the metadata"""
 
     @staticmethod
     def log_metadata(_metadata: dict) -> None:

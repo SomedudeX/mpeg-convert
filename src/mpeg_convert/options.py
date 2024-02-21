@@ -4,7 +4,7 @@ import os
 from rich.console import Console
 from rich.prompt import Prompt, Confirm
 
-from src.mpeg_convert.customization import *
+from mpeg_convert.customization import *
 
 
 class OptionsHandler:
