@@ -7,7 +7,7 @@
 #
 #     PascalCase       Class name
 #     snake_case       Variable or function/method name
-#     _underscore      Variable/function should be used only intenally in
+#     _underscore      Variable/function should be used only internally in
 #                      the scope it's declared in (and should not be
 #                      modified by the end user)
 #
@@ -22,12 +22,11 @@
 # This project uses 4 spaces for indentation. 
 
 
-from .utils import ModuleCheck
+from src.mpeg_convert.utils import ModuleCheck
 
 # Check module health before importing
 ModuleCheck.check_required()
 ModuleCheck.check_customize()
-
 
 import os
 import sys
@@ -35,15 +34,15 @@ import sys
 from rich import traceback
 from rich.console import Console
 
-from .convert import Program
-from .utils import FatalError
+from src.mpeg_convert.convert import Program
+from src.mpeg_convert.utils import FatalError
 
 
 def main():
-    _printer     = Console(highlight = False)
-    _err_printer = Console(highlight = False, style = "red")
+    _printer = Console(highlight=False)
+    _err_printer = Console(highlight=False, style="red")
     traceback.install()
-    
+
     try:
         instance = Program()
         instance.run()
@@ -52,7 +51,7 @@ def main():
         _err_printer.log(f"{e.note}")
         _err_printer.log(f"[Info] Mpeg-convert terminating with exit code {e.code}")
         sys.exit(1)
-    except KeyboardInterrupt as e:
+    except KeyboardInterrupt:
         _printer.print()
         _printer.log("[yellow][Warning] Mpeg-convert received KeyboardInterrupt")
         _printer.log("[yellow][Warning] Force quitting with os._exit()")

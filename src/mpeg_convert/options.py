@@ -4,18 +4,18 @@ import os
 from rich.console import Console
 from rich.prompt import Prompt, Confirm
 
-from .customization import *
+from src.mpeg_convert.customization import *
 
 
-class OptionsHandler():
+class OptionsHandler:
     """The OptionsHandler() class asks the user questions on how to transcode the file"""
-    
+
     def __init__(
-        self,
-        _metadata: dict,
-        _audio_stream: int,
-        _video_stream: int,
-        _filepath_out: str
+            self,
+            _metadata: dict,
+            _audio_stream: int,
+            _video_stream: int,
+            _filepath_out: str
     ) -> None:
         """Initializes an instance of OptionsHandler()
         
@@ -24,24 +24,24 @@ class OptionsHandler():
             the audio channels. 
         
         + Args - 
-            _metadata: a dictionary representing the metadata from ffprobe
+            _metadata: a dictionary representing the metadata from FFprobe
             _audio_stream: the first audio stream
             _video_stream: the first video stream
         """
-        self.console = Console(highlight = False)
-        self.error_console = Console(style = "red", highlight = False)
-        
+        self.console = Console(highlight=False)
+        self.error_console = Console(style="red", highlight=False)
+
         self.options = {}
         self.metadata = _metadata
         self.audio_stream = _audio_stream
         self.video_stream = _video_stream
-        
+
         self._output = _filepath_out
         self.replace = "n"
-        
+
     def ask_encode_options(
-        self, 
-        _default: bool = False
+            self,
+            _default: bool = False
     ) -> dict[str, str]:
         """Asks the user for encoding options
         
@@ -71,16 +71,16 @@ class OptionsHandler():
                 self.console.print()
                 self.replace = Prompt.ask(
                     " -  Replace existing output path",
-                    choices = ["y", "n"],
-                    default = "n"
+                    choices=["y", "n"],
+                    default="n"
                 )
-                
+
                 if self.replace == "n":
                     self.console.print()
                     self.console.log("[Info] Finished gathering encoding options")
                     self.console.log("[Info] User declined operation, terminating")
                     raise SystemExit(0)
-                    
+
             self.options = DEFAULT_OPTIONS
             return self.options
 
@@ -91,59 +91,59 @@ class OptionsHandler():
         self.console.print("[3] Video and audio (default)")
         self.console.print("[4] Skip encode options")
         _encode = Prompt.ask(
-            " -  Select an option", 
-            choices = ["1", "2", "3", "4"], 
-            default = "3"
+            " -  Select an option",
+            choices=["1", "2", "3", "4"],
+            default="3"
         )
 
         self.options: dict = {}
-        if _encode == "1": 
+        if _encode == "1":
             self.options = self._ask_audio_options()
             self.options["vn"] = None
-        if _encode == "2": 
+        if _encode == "2":
             self.options = self._ask_video_options()
             self.options["an"] = None
-        if _encode == "3": 
-            self.options = (self._ask_video_options() | 
+        if _encode == "3":
+            self.options = (self._ask_video_options() |
                             self._ask_audio_options())
-            
+
         self.console.print()
         self.console.print("[bold] -*- Miscellaneous options -*-")
-        
+
         if os.path.isfile(self._output):
             self.console.print()
             self.replace = Prompt.ask(
                 " -  Replace existing output path",
-                choices = ["y", "n"],
-                default = "n"
+                choices=["y", "n"],
+                default="n"
             )
-            
+
             if self.replace == "n":
                 self.console.print()
                 self.console.log("[Info] Finished gathering encoding options")
                 self.console.log("[Info] User declined operation, terminating")
                 raise SystemExit(0)
-        
+
         self.console.print()
         _metadata_strip = Prompt.ask(
             " -  Enable file metadata stripping",
-            choices = ["y", "n"],
-            default = "y"
+            choices=["y", "n"],
+            default="y"
         )
-        
+
         self.console.print()
         _additional_commands = Prompt.ask(
             " -  Custom options to ffmpeg ('-option value -option2 value...')\n" +
             " -  Use empty field to skip"
         )
-        
+
         if _metadata_strip == "y":
             self.options["map_metadata"] = "-1"
         if _metadata_strip == "n":
             self.options["map_metadata"] = "0"
-        
+
         self.options = self.options | self._parse_custom_command(_additional_commands)
-        
+
         self.console.print()
         return self.options
 
@@ -159,7 +159,7 @@ class OptionsHandler():
         """
 
         _ret: dict = {}
-        
+
         if self.audio_stream == -1:
             self.error_console.print()
             self.error_console.print("[Error] No audio stream detected in metadata! ")
@@ -168,12 +168,12 @@ class OptionsHandler():
             _continue = Confirm.ask("[red] - Would you like to continue?")
             if not _continue:
                 return _ret
-        
+
         self.console.print()
         self.console.print("[bold] -*- Audio options -*-")
         for _question in AUDIO_OPTIONS:
             _ret = _ret | self._ask_question(_question)
-        
+
         return _ret
 
     def _ask_video_options(self) -> dict:
@@ -187,7 +187,7 @@ class OptionsHandler():
             Dictionary: containing the arguments to pass to FFmpeg. 
         """
         _ret: dict = {}
-        
+
         if self.video_stream == -1:
             self.error_console.print()
             self.error_console.print("[Error] No video stream detected in metadata! ")
@@ -196,17 +196,17 @@ class OptionsHandler():
             _continue = Confirm.ask("[red] - Would you like to continue?")
             if not _continue:
                 return _ret
-                
+
         self.console.print()
         self.console.print("[bold] -*- Video options -*-")
-        for _question in VIDEO_OPTIONS: 
+        for _question in VIDEO_OPTIONS:
             _ret = _ret | self._ask_question(_question)
 
         return _ret
-        
+
     def _ask_question(
-        self, 
-        _question: dict
+            self,
+            _question: dict
     ) -> dict:
         """Asks the user a question
         
@@ -217,29 +217,29 @@ class OptionsHandler():
             Dictionary: containing the option (key) and the user's input (value)
         """
         _ret: dict = {}
-        
-        if _question["option"][0] == "-":                     # The python-ffmpeg api inserts a dash (-) symbol 
-            _question["option"] = _question["option"][1:]     # for you, so we have to get rid of the dash.
-            
+
+        if _question["option"][0] == "-":  # The python-ffmpeg api inserts a dash (-) symbol
+            _question["option"] = _question["option"][1:]  # for you, so we have to get rid of the dash.
+
         if _question["type"] == "choice":
             _custom_index = len(_question["choices"]) + 0
             _none_index = len(_question["choices"]) + 1
             _total_length = len(_question["choices"]) + 2
-            
+
             self.console.print()
             self.console.print(" - ", _question["title"])
             self._print_choices(
                 _question["choices"],
                 _question["default"]
             )
-            
+
             _answer_index = Prompt.ask(
-                " -  Select an option", 
-                choices = [str(i + 1) for i in range(_total_length)], 
-                default = str(_question["default"]),
-                
+                " -  Select an option",
+                choices=[str(i + 1) for i in range(_total_length)],
+                default=str(_question["default"]),
+
             )
-            
+
             _answer_index = int(_answer_index) - 1
             if _answer_index == _none_index:
                 self.console.print(" -  Option removed from ffmpeg arguments")
@@ -247,35 +247,35 @@ class OptionsHandler():
             if _answer_index == _custom_index:
                 _ret[_question["option"]] = Prompt.ask(" -  Custom value")
                 return _ret
-            
+
             _ret[_question["option"]] = _question["choices"][_answer_index][1]
             return _ret
-                
+
         if _question["type"] == "input":
             self.console.print()
             _answer_index = Prompt.ask(
                 " -  " + _question["title"]
             )
-            
+
             _ret[_question["option"]] = _answer_index
             return _ret
-            
+
         return _ret
-        
+
     def _print_choices(
-        self, 
-        _choices: list[tuple], 
-        _default: int
+            self,
+            _choices: list[tuple],
+            _default: int
     ) -> None:
         """Prints the choices from a list of tuples
         
         + Args -
-            Choices: a list of tuples contiaining the different options to display
+            Choices: a list of tuples containing the different options to display
             Default: The index to mark as 'default'
         """
         _custom_index = len(_choices) + 1
         _none_index = len(_choices) + 2
-        
+
         for index, value in enumerate(_choices):
             _number = index + 1
             _line = value[0]
@@ -283,11 +283,11 @@ class OptionsHandler():
             if _default == index + 1:
                 _line = _line + " (default)"
             self.console.print(_line)
-            
+
         self.console.print(f"[{_custom_index}] Custom value")
         self.console.print(f"[{_none_index}] Remove option")
         return
-        
+
     @staticmethod
     def _parse_custom_command(_commands: str) -> dict:
         """Parses the optional commands that the user enters into ffmpeg
@@ -304,16 +304,16 @@ class OptionsHandler():
             in all scenarios. Exercise caution when using the custom commands
         """
         _ret: dict = {}
-        
+
         if _commands == "":
             return _ret
-            
+
         _commands += " "
         _option: str = ""
         _value: str = ""
         _is_option: bool = True
         _current_str: str = ""
-        
+
         for _ in range(len(_commands)):
             if len(_commands) == 0:
                 break
@@ -335,9 +335,9 @@ class OptionsHandler():
                 _current_str = ""
                 _ret[_option] = _value
                 continue
-                
+
             _current_str += _commands[0]
             _commands = _commands[1:]
             continue
-                
+
         return _ret

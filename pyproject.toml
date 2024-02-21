@@ -1,5 +1,5 @@
-w[build-system]
-requires      = ["setuptools>=61.0.0", "wheel"]
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 
@@ -21,13 +21,10 @@ classifiers = [
     "Programming Language :: Python",
     "Topic :: Multimedia",
     "Topic :: Utilities",
-    "Environment :: Console"
+    "Environment :: Console",
 ]
 
-dependencies = [
-    "rich>=13.7.0",
-    "python-ffmpeg>=2.0.10"
-]
+dependencies = ["rich>=13.7.0", "python-ffmpeg>=2.0.10"]
 
 [project.urls]
 Homepage = "https://github.com/SomedudeX/mpeg-convert"
