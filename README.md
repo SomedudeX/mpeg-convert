@@ -59,7 +59,9 @@ mpeg-convert --help
 
 ## Customizing
 
-You can further customize the script by changing the questions variable `VIDEO_OPTIONS` and `AUDIO_OPTIONS` in mpeg-convert to your liking. This can be achieved using the `--customize` option, which will open the correct file for you in your default text editor.
+#### Interactive
+
+You can customize the interactive mode of the script by changing the questions variable `VIDEO_OPTIONS` and `AUDIO_OPTIONS` in mpeg-convert to your liking. This can be achieved using the `--customize` option, which will open the correct file for you in your default text editor.
 
 The two variables represents the list of questions asked during video options and audio options sections of the script respectively. The properties of each question is represented as a dictionary in python, and will be shown to the user in order. The dictionaries' format is shown below:
 
@@ -109,12 +111,55 @@ An example of a custom question is below:
             ("Normal/medium quality", "medium"),
             ("Slower/best quality", "veryslow")
         ]
-    }
+    },
 ...
 ]
 ```
 
-This format applies to existing questions as well.
+#### Preset
+
+Presets are different predetermined flags and options of FFmpeg options that mpeg-convert uses when you specify the name of the preset. Presets can be activated by specifying the name of the preset as a positional flag. You can customize them by modifying the `PRESETS` variable also located in `customization.py`. 
+
+The preset's format is shown below: 
+```py
+{
+...
+    "name": {
+        "option": <str|None>,
+        ...
+    },
+...
+}
+```
+
+**`name`**: The name that is used to activate the preset
+
+**`option`**: A command-line option to be inserted to the list of arguments passed to FFmpeg. If the FFmpeg option does not take any value, put `None` after the colon.
+
+ > [!IMPORTANT]
+ > The option should be stripped of the dash (-) symbol at the front. 
+ > 
+ > e.g. `-codec:a` would be written as `codec:a`
+ 
+ > [!NOTE]
+ > There can be more than one option in each preset.
+ 
+An example of a custom preset is below:
+
+```py
+{
+...
+    "flac-audio": {
+        "vn": None,
+        "ar": "96000",
+        "codec:a": "flac",
+        "sample_fmt": "s24",
+    },
+...
+}
+```
+ 
+These formats apply to existing questions as well.
 
 ## Troubleshooting
 
