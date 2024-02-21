@@ -18,44 +18,10 @@ This project is now hosted on [PyPi](https://pypi.org/project/mpeg-convert), how
 
 Make sure you have Python 3 and FFmpeg installed. 
 
-#### Automatic
-
-* Use pip to install and manage mpeg-convert and its dependencies
-
 ```bash
 pip install --upgrade mpeg-convert
-```
-
-* Launch the script
-
-```bash
 mpeg-convert --help
 ```
-
-#### Manual
-
-* Clone this repository
-  
-  ```bash
-  git clone https://github.com/SomedudeX/MPEG-Convert.git
-  cd MPEG-Convert
-  ```
-
-* Install script dependencies
-
-  ```bash
-  python3 -m pip install -r requirements.txt
-  ```
-
-* Launch the script
-
-  ```bash
-  cd src
-  python3 -m mpeg-convert --help
-  ```
-
-> [!WARNING]
-> The manual installation instructions are designed for POSIX-compliant shells found in Linux/macOS. The instructions are not tested for Windows. 
 
 ## Customizing
 
@@ -67,7 +33,6 @@ The two variables represents the list of questions asked during video options an
 
 ```py
 [
-...
     {
         "type": <str>,
         "title": <str>,
@@ -75,32 +40,27 @@ The two variables represents the list of questions asked during video options an
         "default": <int>,
         "choices": <list[tuple]>
     }
-...
 ]
 ```
 
-**`type`**: The type of the question
+ * **`type`**: The type of the question
 
- * Valid values:
-   + **`choice`**: Multiple choice
-   + **`input`**: Input field
-  
-> [!NOTE]
-> If a question type is set to `choice`, MPEG-Convert will automatically append `custom value` and `remove option` as the last two options. 
+   * Valid values:
+     + **`choice`**: Multiple choice
+     + **`input`**: Input field
 
-**`title`**: The text shown to the console when displaying the question during the execution of the program
+ * **`title`**: The text shown to the console when displaying the question during the execution of the program
 
-**`option`**: The corresponding option in FFmpeg. This option will be inserted to the list of arguments passed to FFmpeg
+ * **`option`**: The corresponding option in FFmpeg. This option will be inserted to the list of arguments passed to FFmpeg
 
-**`default`**: The default option that is used when the input field is empty. Has no effect if question type is `input`.
+ * **`default`**: The default option that is used when the input field is empty. Has no effect if question type is `input`.
 
-**`choices`**: A list of choices that will be shown to the console during the execution of the program. The choices will be in tuples where the first index will be what is displayed, and the second index is what is actually entered as a value for the particular FFmpeg option. Has no effect if question type is `input`.
+ * **`choices`**: A list of choices that will be shown to the console during the execution of the program. The choices will be in tuples where the first index will be what is displayed, and the second index is what is actually entered as a value for the particular FFmpeg option. Has no effect if question type is `input`.
 
 An example of a custom question is below: 
 
 ```py
 [
-...
     {
         "type": "choice",
         "title": "Select an encoding preset",
@@ -111,55 +71,44 @@ An example of a custom question is below:
             ("Normal/medium quality", "medium"),
             ("Slower/best quality", "veryslow")
         ]
-    },
-...
+    }
 ]
 ```
 
-#### Preset
+<br></br>
+
+#### Presets
 
 Presets are different predetermined flags and options of FFmpeg options that mpeg-convert uses when you specify the name of the preset. Presets can be activated by specifying the name of the preset as a positional flag. You can customize them by modifying the `PRESETS` variable also located in `customization.py`. 
 
 The preset's format is shown below: 
 ```py
 {
-...
     "name": {
-        "option": <str|None>,
+        "option": <str>,
+        "option": <str>,
+        "option": <str>,
         ...
-    },
-...
+    }
 }
 ```
 
-**`name`**: The name that is used to activate the preset
+ * **`name`**: The name that is used to activate the preset
 
-**`option`**: A command-line option to be inserted to the list of arguments passed to FFmpeg. If the FFmpeg option does not take any value, put `None` after the colon.
-
- > [!IMPORTANT]
- > The option should be stripped of the dash (-) symbol at the front. 
- > 
- > e.g. `-codec:a` would be written as `codec:a`
- 
- > [!NOTE]
- > There can be more than one option in each preset.
+ * **`option`**: A command-line option to be inserted to the list of arguments passed to FFmpeg. The option should be stripped of the dash (-) symbol at the front. If the FFmpeg option does not take any value, put `None` after the colon. There can be more than one option in each preset. 
  
 An example of a custom preset is below:
 
 ```py
 {
-...
     "flac-audio": {
         "vn": None,
         "ar": "96000",
         "codec:a": "flac",
         "sample_fmt": "s24",
-    },
-...
+    }
 }
 ```
- 
-These formats apply to existing questions as well.
 
 ## Troubleshooting
 
@@ -176,7 +125,7 @@ These formats apply to existing questions as well.
 
  - [Demo](https://github.com/SomedudeX/mpeg-convert/raw/main/demo.mp4)
  - [License](https://raw.githubusercontent.com/SomedudeX/mpeg-convert/main/LICENSE)
- - [Project](https://pypi.org/project/mpeg-convert/#history)
+ - [Project](https://pypi.org/project/mpeg-convert/)
 
 Contributions are welcome! If you encounter any problems or find any bugs, please feel free to open an issue. In the meantime, happy converting! 
 
