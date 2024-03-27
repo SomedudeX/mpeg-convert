@@ -20,31 +20,31 @@
 
 import sys
 
+
 from . import utils
-from . import argparse
-# from .modules import modules
+from . import modules
+from . import arguments
 
 
-def main():
-    arguments_handler = argparse.ArgumentsHandler(sys.argv)
-    arguments = arguments_handler.process_args()
-    
-    utils.validate_arguments(arguments)
-    
-    # modules_handler = modules.ModulesHandler(arguments)
-    # modules_handler.run_module()
-    
-    # return modules_handler.get_exit_code()
+def main(args: list[str]) -> int:
+    instance = modules.ModulesManager(args)
+    instance.run_module()
+    return instance.exit_code
 
 
 if __name__ == "__main__":
     try:
-        sys.exit(main())
-    except argparse.ArgumentParseError as e:
-        utils.log(f"[red][Fatal] ArgumentParseError: argument '{e.arguments}' is invalid")
-        utils.log(f"[red][Fatal] Mpeg-convert terminating with exit code -1")
+        root_logger = utils.Logger("__main__.py")
+        sys.exit(main(sys.argv))
+    except arguments.ArgumentValidationError as error:
+        root_logger.log(f"[red][Fatal] ArgumentValidationError: {error.message}")
+        root_logger.log(f"[red][Fatal] Mpeg-convert terminating with exit code -1")
         sys.exit(-1)
-    except argparse.ArgumentValidationError as e:
-        utils.log(f"[red][Fatal] ArgumentValidationError: {e.message}")
-        utils.log(f"[red][Fatal] Mpeg-convert terminating with exit code -1")
+    except arguments.ArgumentParseError as error:
+        root_logger.log(f"[red][Fatal] ArgumentParseError: error parsing '{error.argument}'")
+        root_logger.log(f"[red][Fatal] Mpeg-convert terminating with exit code -1")
+        sys.exit(-1)
+    except Exception as error:
+        root_logger.log(f"[red][Fatal] A fatal unknown error occured: {error}")
+        root_logger.log(f"[red][Fatal] Mpeg-convert terminating with exit code -1")
         sys.exit(-1)

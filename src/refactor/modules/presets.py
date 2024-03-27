@@ -1,22 +1,24 @@
+"""Anything related to FFmpeg presets"""
 import json
 
 from .. import utils
 
 
 class Preset:
-    
+    """An internal representation of a preset"""
     def __init__(
         self,
         name: str,
         command: str
     ) -> None:
+        """Initialize an instance of Preset"""
         self.name = name
         self.command = command
-        self.internal_value = "--" + name
         return
 
 
 def load_presets() -> list[Preset]:
+    """Load presets into a list to represent them internally"""
     ret = []
     utils.create_json("convert_presets.json")
     with open("convert_presets.json", "r") as file:
