@@ -1,3 +1,6 @@
+"""The base exceptions class"""
+
+
 class BaseError(Exception):
     """An error to be emitted during the execution of the program. Should
     be customized with inheritance by each module separately. 

@@ -2,7 +2,6 @@
 
 from . import utils
 from . import arguments
-from . import exceptions
 
 from .core import help
 from .core import version
@@ -23,10 +22,13 @@ class ModulesManager:
             args: The list of arguments to pass to the module (most likely sys.argv)"""
         self.exit_code = 0
         self.arguments = arguments.ArgumentBase()
-        self.arguments.add_arguments(arguments_list)
+        self.arguments.scan_flags(arguments_list)
 
-        if self.arguments.module not in arguments.available_modules:
-            raise arguments.ArgumentValidationError(f'\'{self.arguments.module}\' is not a valid argument')
+        self.module = 'help'
+        if len(arguments_list) > 1:
+            self.module = arguments_list[1]
+        if self.module not in arguments.available_modules:
+            raise arguments.ArgumentValidationError(f'\'{self.module}\' is not a valid argument')
 
         self.logger = utils.Logger(self.arguments.log_level)
         return
@@ -34,18 +36,15 @@ class ModulesManager:
     def run_module(self) -> None:
         """Runs the module and cleanup/catches any errors it emits"""
         try:
-            if self.arguments.module == 'help':
+            if self.module == 'help':
                 help.run_module(self.arguments)
-            if self.arguments.module == 'version':
+            if self.module == 'version':
                 version.run_module(self.arguments)
-            if self.arguments.module == 'presets':
+            if self.module == 'presets':
                 presets.run_module(self.arguments)
-            if self.arguments.module == 'convert':
+            if self.module == 'convert':
                 convert.run_module(self.arguments)
-        except exceptions.BaseError as e:
-            self.logger.log('BaseError')
-            self.exit_code = e.code
-        except Exception as e:
+        except Exception:
             self.logger.log('Exception')
             self.exit_code = 255
         return

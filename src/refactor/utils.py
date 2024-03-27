@@ -1,4 +1,5 @@
 """Functions and utility classes that does not fit into other files"""
+
 import os
 import json
 
@@ -10,7 +11,7 @@ class Logger:
 
     def __init__(
         self,
-        emit_level: int = 1
+        emit_level: int = 2
     ) -> None:
         """Initiates a Logger class
 
@@ -30,7 +31,7 @@ class Logger:
          + Args -
             message: The message to log to the console
             level: The level of severity to log at. Program uses the following
-            scale —— 1 (debug), 2 (info), 3 (fatal). """
+            scale —— 1 (debug), 2 (info), 3 (warning), 4 (fatal). """
         if level >= self.emit_level:
             Console().log(f'{message}', highlight=False)
 
