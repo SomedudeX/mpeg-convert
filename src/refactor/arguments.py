@@ -1,10 +1,20 @@
 """Arguments related classes and exceptions"""
 
-available_modules = ["help", "version", "preset", "convert"]
+available_modules = ['help', 'version', 'preset', 'convert']
 
 
 class ArgumentBase:
-    """A list of available arguments that the program accepts"""
+    """The basic list of arguments and flags that the user inputted"""
+
+    def __init__(
+        self,
+        module: str,
+        log_level: int
+    ) -> None:
+        """Initializes an instance of ArgumentBase"""
+        self.module = module
+        self.log_level = log_level
+        return
 
 
 class ArgumentParseError(Exception):
