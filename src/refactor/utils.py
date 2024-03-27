@@ -2,12 +2,11 @@
 import os
 import json
 
-from datetime import datetime
 from rich.console import Console
 
 
 class Logger:
-    """"""
+    """A Logger class that prints to the console"""
 
     def __init__(
         self,
@@ -16,7 +15,6 @@ class Logger:
         """Initiates a Logger class
 
          + Args - 
-            name: The name of the logger to be printed when logging
             emit_level: All messages greater than or equal to this level (severity) will
             be emitted when calling the `log` method of this class. """
         self.emit_level = emit_level
@@ -34,8 +32,7 @@ class Logger:
             level: The level of severity to log at. Program uses the following
             scale —— 1 (debug), 2 (info), 3 (fatal). """
         if level >= self.emit_level:
-            time = datetime.now().strftime('%H:%M:%S')
-            Console().print(f'[bright_black]\\[{time}] [/bright_black]{message}', highlight=False)
+            Console().log(f'{message}', highlight=False)
 
 
 def expand_paths(path: str) -> str:
