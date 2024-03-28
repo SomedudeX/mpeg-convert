@@ -20,12 +20,31 @@
 
 import sys
 
-from . import modules
+from .utils import Logger
+from .modules import ModulesManager
+from .arguments import ArgumentBase
+from .arguments import ArgumentParseError, ArgumentValidationError
 
 
-def main(args: list[str]) -> int:
-    instance = modules.ModulesManager(args)
-    instance.run_module()
+def main(argv: list[str]) -> int:
+    try:                                        # Try-except catches base flag parsing exceptions
+        del argv[0]
+        root_args = ArgumentBase(argv)          # Parses flags critical to program execution, 
+        instance = ModulesManager(root_args)    # then creates an instance of ModulesManager and
+        instance.run_module()                   # run the specified module (deducted from arguments)
+    except ArgumentValidationError as error:
+        console = Logger()
+        console.log(f'[red][Fatal] ArgumentValidationError: {error.message}', level=4)
+        console.log(f'[Info] Mpeg-convert terminating with exit code {error.code}', level=4)
+        return error.code
+    except ArgumentParseError as error:
+        console = Logger()
+        console.log(f'[red][Fatal] ArgumentValidationError: inapt argument \'{error.argument}\'', level=4)
+        console.log(f'[Info] Mpeg-convert terminating with exit code {error.code}', level=4)
+        return error.code
+
+    console = Logger(root_args.log_level)
+    console.log(f'[Info] Mpeg-convert terminating with exit code {instance.exit_code}', level=2)
     return instance.exit_code
 
 

@@ -1,44 +1,11 @@
 """Arguments related classes and exceptions"""
 
-from . import exceptions
+from .exceptions import BaseError
 
-available_modules = ['help', 'version', 'preset', 'convert']
-
-
-class ArgumentBase:
-    """A list of arguments"""
-
-    def __init__(self) -> None:
-        """Initializes an instance of ArgumentBase; should only be used when
-        parsing module-independent flags at the start of the execution of the
-        program"""
-        self.log_level = 2
-        self.quiet = False
-        self.debug = False
-        return
-
-    def scan_flags(
-        self,
-        arguments_list: list[str]
-    ) -> None:
-        """Adds basic arguments to instance
-
-         + Args - 
-            arguments_list: The list of arguments obtained usually from sys.argv
-        """
-        for i in range(len(arguments_list) - 1, 0):
-            if arguments_list[i][0] != '-':
-                break
-            if arguments_list[i] == '--quiet':
-                self.quiet = True
-                del arguments_list[i]
-            if arguments_list[i] == '--debug':
-                self.debug = True
-                del arguments_list[i]
-        return
+AvailableModules = ['help', 'version', 'preset', 'convert']
 
 
-class ArgumentParseError(exceptions.BaseError):
+class ArgumentParseError(BaseError):
     """An error emitted when an unexpected argument is encountered"""
     
     def __init__(
@@ -57,8 +24,8 @@ class ArgumentParseError(exceptions.BaseError):
         return
         
         
-class ArgumentValidationError(exceptions.BaseError):
-    """An error emitted when an argument is invalid"""
+class ArgumentValidationError(BaseError):
+    """An error emitted when there are conflicting arguments present"""
     
     def __init__(
         self,
@@ -74,3 +41,55 @@ class ArgumentValidationError(exceptions.BaseError):
         self.message = message
         super().__init__(code)
         return
+
+
+class ArgumentBase:
+    """A list of arguments that the program accepts"""
+
+    def __init__(
+        self,
+        arguments_list: list[str]
+    ) -> None:
+        """Initializes an instance of ArgumentBase
+
+         + Args - 
+            arguments_list: A list of arguments (most likely from sys.argv)
+
+         + Notes - 
+            Should only be used when parsing module-independent flags at the 
+            start of the execution of the program. Otherwise, this class should 
+            be customized through inheritance for each individual modules.
+
+            Additionally, when adding new flags to the tool, initialize the 
+            flag variable here but scan for the flag (if changed) in a
+            separate function. This is to keep the __init__ function clean. 
+        """
+        self.arguments_list = arguments_list
+
+        self.log_level = 2              # level 2 (info) is the default log level
+        self.determine_log_flag()
+        return
+
+    def determine_log_flag(self) -> None:
+        """Scans argument flag for log level changes from last to first"""
+        _debug, _quiet = False, False
+        for i in range(len(self.arguments_list) - 1, 0, -1):
+            if self.arguments_list[i][0] != '-':
+                break
+            if self.arguments_list[i] == '--quiet':
+                _quiet = True
+                del self.arguments_list[i]
+                continue
+            if self.arguments_list[i] == '--debug':
+                _debug = True
+                del self.arguments_list[i]
+                continue
+
+        if _debug:
+            self.log_level = 1
+        if _quiet:
+            self.log_level = 3
+        if _quiet and _debug:
+            raise ArgumentValidationError('cannot have both \'--quiet\' and \'--debug\' flags')
+        return
+        
