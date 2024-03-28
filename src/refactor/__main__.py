@@ -29,22 +29,22 @@ from .arguments import ArgumentParseError, ArgumentValidationError
 def main(argv: list[str]) -> int:
     try:                                        # Try-except catches base flag parsing exceptions
         del argv[0]
+        log = Logger()
         root_args = ArgumentBase(argv)          # Parses flags critical to program execution, 
         instance = ModulesManager(root_args)    # then creates an instance of ModulesManager and
         instance.run_module()                   # run the specified module (deducted from arguments)
     except ArgumentValidationError as error:
-        console = Logger()
-        console.log(f'[red][Fatal] ArgumentValidationError: {error.message}', level=4)
-        console.log(f'[Info] Mpeg-convert terminating with exit code {error.code}', level=4)
+        log.fatal(f'ArgumentValidationError: {error.message}')
+        log.fatal(f'Mpeg-convert terminating with exit code {error.code}')
         return error.code
     except ArgumentParseError as error:
-        console = Logger()
-        console.log(f'[red][Fatal] ArgumentValidationError: inapt argument \'{error.argument}\'', level=4)
-        console.log(f'[Info] Mpeg-convert terminating with exit code {error.code}', level=4)
+        log.fatal(f'ArgumentValidationError: inapt argument \'{error.argument}\'')
+        log.fatal(f'Mpeg-convert terminating with exit code {error.code}')
         return error.code
 
-    console = Logger(root_args.log_level)
-    console.log(f'[Info] Mpeg-convert terminating with exit code {instance.exit_code}', level=2)
+    log.change_emit_level(root_args.log_level)
+    if instance.exit_code == 0: log.info(f'Mpeg-convert terminating with exit code {instance.exit_code}')
+    if instance.exit_code != 0: log.fatal(f'Mpeg-convert terminating with exit code {instance.exit_code}')
     return instance.exit_code
 
 

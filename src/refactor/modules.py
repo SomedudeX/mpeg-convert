@@ -36,7 +36,7 @@ class ModulesManager:
             self.module = self.arguments.arguments_list[0]
             del self.arguments.arguments_list[0]
 
-        self.logger = Logger(self.arguments.log_level)
+        self.log = Logger(self.arguments.log_level)
         return
 
     def run_module(self) -> None:
@@ -61,12 +61,12 @@ class ModulesManager:
             if self.module not in AvailableModules:
                 raise ArgumentParseError(self.module)
         except ArgumentParseError as error:
-            self.logger.log(f'[red][Fatal] ArgumentParseError: inapt argument \'{error.argument}\'', level=4)
+            self.log.fatal(f'ArgumentParseError: inapt argument \'{error.argument}\'')
             self.exit_code = 64
         except ArgumentValidationError as error:
-            self.logger.log(f'[red][Fatal] ArgumentParseError: {error.message}', level=4)
+            self.log.fatal(f'ArgumentParseError: {error.message}')
             self.exit_code = 64
         except BaseError as error:
-            self.logger.log(f'[red][Fatal] BaseError: An unknown fatal error has occured', level=4)
+            self.log.fatal(f'BaseError: An unknown fatal error has occured')
             self.exit_code = error.code
         return

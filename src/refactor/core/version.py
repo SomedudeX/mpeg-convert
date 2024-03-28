@@ -12,8 +12,8 @@ class VersionArguments(ArgumentBase):
 
 
 def run_module(args: ArgumentBase):
-    console = Logger(args.log_level)
-    console.log(f'[Info] Running module version', level=2)
-    console.log(f'[Info] Received arguments: {args.arguments_list}', level=2)
-    console.log(f'[yellow][Warning] Module version unimplemented', level=3)
+    log = Logger(args.log_level)
+    log.info(f'Running module version')
+    log.info(f'Received arguments: {args.arguments_list}')
+    log.warning(f'Module version unimplemented')
     ...

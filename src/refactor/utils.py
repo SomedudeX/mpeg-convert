@@ -9,6 +9,11 @@ from rich.console import Console
 class Logger:
     """A Logger class that prints to the console"""
 
+    Debug   = 1
+    Info    = 2
+    Warning = 3
+    Fatal   = 4
+
     def __init__(
         self,
         emit_level: int = 2
@@ -17,23 +22,74 @@ class Logger:
 
          + Args - 
             emit_level: All messages greater than or equal to this level (severity) will
-            be emitted when calling the `log` method of this class. """
+            be emitted when calling the logging methods method of this class. """
         self.emit_level = emit_level
         return
 
-    def log(
+    def change_emit_level(
+        self,
+        new_emit_level: int
+    ) -> None:
+        """Sets a new emit level; anything above this level will be logged
+
+         + Args -
+            new_emit_level: A new emit level that all messages greater than or equal
+            to this level (severity) will be emitted when calling the logging methods 
+            method of this class. """
+        self.emit_level = new_emit_level
+        return
+
+    def debug(
         self,
         message: str, 
-        level: int = 2
     ) -> None:
-        """Log the specified message to the console with specified severity
+        """Log the specified message to the console with `debug` severity
 
          + Args -
             message: The message to log to the console
-            level: The level of severity to log at. Program uses the following
-            scale —— 1 (debug), 2 (info), 3 (warning), 4 (fatal). """
-        if level >= self.emit_level:
-            Console().log(f'{message}', highlight=False)
+        """
+        if self.Debug >= self.emit_level:
+            Console().log(f'[bright_black][Debug] {message}', highlight=False)
+        return
+
+    def info(
+        self,
+        message: str, 
+    ) -> None:
+        """Log the specified message to the console with `info` severity
+
+         + Args -
+            message: The message to log to the console
+        """
+        if self.Info >= self.emit_level:
+            Console().log(f'[Info] {message}', highlight=False)
+        return
+
+    def warning(
+        self,
+        message: str, 
+    ) -> None:
+        """Log the specified message to the console with `warning` severity
+
+         + Args -
+            message: The message to log to the console
+        """
+        if self.Warning >= self.emit_level:
+            Console().log(f'[yellow][Warning] {message}', highlight=False)
+        return
+
+    def fatal(
+        self,
+        message: str, 
+    ) -> None:
+        """Log the specified message to the console with the `fatal` severity
+
+         + Args -
+            message: The message to log to the console
+        """
+        if self.Fatal >= self.emit_level:
+            Console().log(f'[red][Fatal] {message}', highlight=False)
+        return
 
 
 def expand_paths(path: str) -> str:
