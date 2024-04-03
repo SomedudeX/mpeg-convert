@@ -1,8 +1,9 @@
 # Install script for legacy support
 
 echo " [WARNING] You are running a deprecated legacy install script"
-echo " [WARNING] Mpeg-convert is now hosted on PyPi"
-echo " [WARNING] Consider using pip to install mpeg-convert"
+echo "           Mpeg-convert is now hosted on PyPi. Consider using pip"
+echo "           to install mpeg-convert. This script will now only"
+echo "           install up to version 1.2.0-legacy of Mpeg-convert."
 
 
 echo " - Checking the installation of curl"
