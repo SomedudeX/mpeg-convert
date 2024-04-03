@@ -17,6 +17,8 @@
 # in order to catch issues and minimize problems with static analyzers
 #
 # This project uses 4 spaces for indentation. import sys
+import sys
+
 
 from . import modules
 from . import arguments

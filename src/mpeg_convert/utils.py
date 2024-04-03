@@ -1,7 +1,7 @@
 """Functions and utility classes that does not fit into other files"""
-
 import os
 import json
+import inspect
 
 from rich.console import Console
 
@@ -56,8 +56,13 @@ class Logger:
          + Args -
             message: The message to log to the console
         """
-        if self.Debug >= self.emit_level:
-            Console().log(f'[bright_black][Debug] {message}', highlight=False)
+        frame = inspect.stack()[1][0]
+        info = inspect.getframeinfo(frame)
+        file = info.filename.split("/")
+        file = file[len(file) - 1]
+        line = info.lineno
+        if self.Fatal >= self.emit_level:
+            Console().print(f'[grey63]\\[{file}:{line}] [Debug] {message}', highlight=False)
         return
 
     def info(
@@ -69,8 +74,13 @@ class Logger:
          + Args -
             message: The message to log to the console
         """
-        if self.Info >= self.emit_level:
-            Console().log(f'[Info] {message}', highlight=False)
+        frame = inspect.stack()[1][0]
+        info = inspect.getframeinfo(frame)
+        file = info.filename.split("/")
+        file = file[len(file) - 1]
+        line = info.lineno
+        if self.Fatal >= self.emit_level:
+            Console().print(f'[grey63]\\[{file}:{line}] [white][Info] {message}', highlight=False)
         return
 
     def warning(
@@ -82,8 +92,13 @@ class Logger:
          + Args -
             message: The message to log to the console
         """
-        if self.Warning >= self.emit_level:
-            Console().log(f'[yellow][Warning] {message}', highlight=False)
+        frame = inspect.stack()[1][0]
+        info = inspect.getframeinfo(frame)
+        file = info.filename.split("/")
+        file = file[len(file) - 1]
+        line = info.lineno
+        if self.Fatal >= self.emit_level:
+            Console().print(f'[grey63]\\[{file}:{line}] [yellow][Warning] {message}', highlight=False)
         return
 
     def fatal(
@@ -95,8 +110,13 @@ class Logger:
          + Args -
             message: The message to log to the console
         """
+        frame = inspect.stack()[1][0]
+        info = inspect.getframeinfo(frame)
+        file = info.filename.split("/")
+        file = file[len(file) - 1]
+        line = info.lineno
         if self.Fatal >= self.emit_level:
-            Console().log(f'[red][Fatal] {message}', highlight=False)
+            Console().print(f'[grey63]\\[{file}:{line}] [red][Fatal] {message}', highlight=False)
         return
 
 
