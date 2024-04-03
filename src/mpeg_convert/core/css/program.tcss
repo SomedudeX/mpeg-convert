@@ -1,0 +1,20 @@
+#MainView {
+    height: 90%;
+}
+
+
+#MainFooter {
+    layout: grid;
+    grid-size: 3;
+    grid-columns: 5fr 1fr 1fr;
+}
+
+
+#FileInputLabel {
+    padding: 1;
+}
+
+
+#FileOutputLabel {
+    padding: 1;
+}
