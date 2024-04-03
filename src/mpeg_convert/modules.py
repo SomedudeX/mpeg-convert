@@ -19,7 +19,7 @@ class ModuleError(Exception):
         super().__init__()
 
 
-def start(argv_properties: ProgramArguments, argv: list[str]):
+def start(argv_properties: ProgramArguments, argv: list[str]) -> int:
     try:
         if argv_properties.module == "":
             return help.run_module(argv_properties, argv)
@@ -32,16 +32,14 @@ def start(argv_properties: ProgramArguments, argv: list[str]):
         if argv_properties.module == "interactive":
             return interactive.run_module(argv_properties, argv)
         if argv_properties.module not in AvailableModules:
-            return 1
+            raise ModuleError(f"{argv_properties.module} is not a valid command", code=64)
     except ModuleError as error:
         log = Logger()
         log.fatal(f"ModuleError: {error.message}")
-        log.fatal(f"Error was caused by {argv_properties.module}")
-        log.fatal(f"Mpeg-convert terminating with code {error.code}")
+        log.fatal(f"Mpeg-convert terminating with exit code {error.code}")
         return error.code
     except BaseException as error:
         log = Logger()
         log.fatal(f"An unexpected fatal error occured: {error}")
-        log.fatal(f"Error was caused by {argv_properties.module}")
-        log.fatal(f"Mpeg-convert terminating with code -1")
+        log.fatal(f"Mpeg-convert terminating with exit code -1")
         return -1
