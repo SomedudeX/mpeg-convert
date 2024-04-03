@@ -1,147 +1,119 @@
-"""Small utility functions and variables that does not belong in a particular module"""
+"""Functions and utility classes that does not fit into other files"""
 
 import os
-import sys
-import platform
-import subprocess
-
-from sys import platform as kernel
+import json
 
 from rich.console import Console
 
-HELP_TEXT = ("\
-Usage: mpeg-convert \\[options] <file.in> <file.out>                    \n\
-                                                                        \n\
-Required args:                                                          \n\
-    file.in        The path to the file to convert from                 \n\
-    file.out       The path to the file to output to                    \n\
-                                                                        \n\
-Optional args:                                                          \n\
-    --version       Prints the version information to the console       \n\
-    --customize     Opens customization.py in your default text editor  \n\
-    -h  --help      Prints this help text and exits                     \n\
-    -v  --verbose   Outputs all ffmpeg log to the console               \n\
-                                                                        \n\
-    --<preset-name> Use one of the presets in customization.py          \n\
-                                                                        \n\
-Custom encoders can be listed by 'ffmpeg -codecs'. Additionally, FFmpeg \n\
-will automatically detect the file extensions/containers to convert     \n\
-to/from; you do not need to specify anything.                           \n\
-                                                                        \n\
-Head to https://github.com/SomedudeX/mpeg-convert/blob/main/README.md   \n\
-for more documentation on the usage and customization of mpeg-convert.    \
-")
 
-VERSION = "v0.1.0"
-
-HEVC_ENCODER = "libx265"
-H264_ENCODER = "libx264"
-
-# On macOS, use apple's 'videotoolbox'
-# for faster encoding speed
-if kernel == "darwin":
-    HEVC_ENCODER = "hevc_videotoolbox"
-    H264_ENCODER = "h264_videotoolbox"
-
-
-def print_help():
-    """Prints the help usage to the console"""
-    Console().print(HELP_TEXT, highlight=False)
-
-
-def print_version():
-    """Prints the version information to the console"""
-    _prgram_version = VERSION
-    _python_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
-    _system_version = f"{sys.platform.capitalize()} ({platform.architecture()[0]} {platform.machine()})"
-
-    Console().print(f"Program  : {_prgram_version}", highlight=False)
-    Console().print(f"Python   : {_python_version}", highlight=False)
-    Console().print(f"Platform : {_system_version}", highlight=False)
-    Console().print(f"\nMade with ♡ by Zichen")
-
-
-def readable_size(_path: str, _decimal_point=2) -> str:
-    """Calculates the size of a particular file on disk and returns the
-    size in a human-readable fashion
+class ProgramInfo:
+    """Information regarding the program should/will be stored here so that it can be 
+    referred to/changed easily
     """
-    size: float = os.path.getsize(_path)
 
-    for i in ["bytes", "kb", "mb", "gb", "tb", "pb"]:
-        if size < 1024.0:
-            return f"{size:.{_decimal_point}f} {i}"
-        size /= 1024.0
-
-    return f"{size:.{_decimal_point}f} pb"
+    VERSION = 'v0.2.0'
 
 
-def handle_customize(_do_log: bool = True) -> None:
-    file_path = os.path.realpath(__file__)
-    file_dir = os.path.dirname(file_path)
-    if _do_log:
-        Console().log("[Info] Opening customization options", highlight=False)
+class Logger:
+    """A Logger class that prints to the console"""
 
-    if platform.system() == "Darwin":
-        subprocess.call(["open", f"{file_dir}/customization.py"])
-    elif platform.system() == "Windows":
-        os.startfile(f"{file_dir}/customization.py")
-    else:
-        subprocess.call(["xdg-open", f"{file_dir}/customization.py"])
-
-    if _do_log:
-        Console().log(
-            "[Info] Successfully opened customization options in default text editor",
-            highlight=False
-        )
-    return
-
-
-class ModuleCheck:
-
-    @staticmethod
-    def check_required() -> None:
-        try:
-            import rich
-            import ffmpeg
-        except ModuleNotFoundError as e:
-            _error = str(e)
-            print(f" \033[91m[Fatal] Module missing: {_error.lower()}")
-            print(f" - Make sure you install all required modules by using 'pip'")
-            print(f" - Make sure you are using the correct version of python\033[0m")
-            print(f" - Mpeg-convert terminating with exit code -1")
-            raise SystemExit(-1)
-        return
-
-    @staticmethod
-    def check_customize() -> None:
-        try:
-            from mpeg_convert import customization
-        except Exception as e:
-            print(f" \033[91m[Fatal] Customization.py is invalid or incorrectly formatted")
-            print(f" - Error message: {str(e)}")
-            print(f" - Please correct any errors in customization.py before starting the program")
-            print(f" - Opening customization.py in your default editor")
-            print(f" - Mpeg-convert terminating with exit code -1")
-            handle_customize(False)
-            raise SystemExit(-1)
-        return
-
-
-class FatalError(Exception):
-    """Represents a fatal error encountered during the execution of the program"""
+    Debug   = 1
+    Info    = 2
+    Warning = 3
+    Fatal   = 4
 
     def __init__(
-            self,
-            _error_code: int = 1,
-            _error_msg: str = "An unknown fatal error occurred",
-            *_notes: str
+        self,
+        emit_level: int = 2
     ) -> None:
-        """Initializes a FatalError object"""
-        self.msg = f"[Fatal] {_error_msg}"
-        self.code = f"{_error_code}"
-        self.note = f""
-        for note in _notes:
-            self.note += f"\n{note}"
+        """Initiates a Logger class
 
-        self.note = self.note[1:]
+         + Args - 
+            emit_level: All messages greater than or equal to this level (severity) will
+            be emitted when calling the logging methods method of this class. """
+        self.emit_level = emit_level
         return
+
+    def change_emit_level(
+        self,
+        new_emit_level: int
+    ) -> None:
+        """Sets a new emit level; anything above this level will be logged
+
+         + Args -
+            new_emit_level: A new emit level that all messages greater than or equal
+            to this level (severity) will be emitted when calling the logging methods 
+            method of this class. """
+        self.emit_level = new_emit_level
+        return
+
+    def debug(
+        self,
+        message: str, 
+    ) -> None:
+        """Log the specified message to the console with `debug` severity
+
+         + Args -
+            message: The message to log to the console
+        """
+        if self.Debug >= self.emit_level:
+            Console().log(f'[bright_black][Debug] {message}', highlight=False)
+        return
+
+    def info(
+        self,
+        message: str, 
+    ) -> None:
+        """Log the specified message to the console with `info` severity
+
+         + Args -
+            message: The message to log to the console
+        """
+        if self.Info >= self.emit_level:
+            Console().log(f'[Info] {message}', highlight=False)
+        return
+
+    def warning(
+        self,
+        message: str, 
+    ) -> None:
+        """Log the specified message to the console with `warning` severity
+
+         + Args -
+            message: The message to log to the console
+        """
+        if self.Warning >= self.emit_level:
+            Console().log(f'[yellow][Warning] {message}', highlight=False)
+        return
+
+    def fatal(
+        self,
+        message: str, 
+    ) -> None:
+        """Log the specified message to the console with the `fatal` severity
+
+         + Args -
+            message: The message to log to the console
+        """
+        if self.Fatal >= self.emit_level:
+            Console().log(f'[red][Fatal] {message}', highlight=False)
+        return
+
+
+def expand_paths(path: str) -> str:
+    """Expand relative paths or paths with tilde (~) to absolute paths"""
+    return os.path.normpath(
+        os.path.join(
+            os.environ['PWD'], 
+            os.path.expanduser(path)
+        )
+    )
+
+
+def create_json(path: str) -> None:
+    """Create a json file if it does not already exist"""
+    if not os.path.exists(path):
+        file = open(path, 'w')
+        json.dump([], file)
+        file.close()
+    return
