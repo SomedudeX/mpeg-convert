@@ -1,4 +1,3 @@
-"""Functions and utility classes that does not fit into other files"""
 import os
 import sys
 import json
