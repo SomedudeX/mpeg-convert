@@ -1,3 +1,5 @@
+from typing import Any, Dict, List
+
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal, Vertical, ScrollableContainer
 from textual.widgets import Button, Input, Static, Label, Switch
@@ -61,6 +63,5 @@ class InteractiveApp(App):
         )
 
 
-if __name__ == "__main__":
-    instance = InteractiveApp()
-    instance.run()
+def run_module(argv: Dict[str, Any], module: List[str]) -> int:
+    ...
