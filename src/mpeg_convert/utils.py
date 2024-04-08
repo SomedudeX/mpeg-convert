@@ -10,7 +10,6 @@ class ProgramInfo:
     """Information regarding the program should/will be stored here so that it
     can be referred to or changed easily
     """
-
     VERSION = "v0.2.0"
 
 
@@ -22,7 +21,6 @@ class CallerInfo:
 
 class Logger:
     """A Logger class that prints to the console"""
-
     Debug   = 1
     Info    = 2
     Warning = 3
@@ -66,7 +64,7 @@ class Logger:
         """
         caller = get_caller_info()
         header = f"[bright_black]\\[{caller.filename}:{caller.lineno}] \\[Debug]"
-        if self.Fatal >= self.emit_level:
+        if self.Debug >= self.emit_level:
             Console().print(f"{header} {message}", highlight=False)
         return
 
@@ -81,7 +79,7 @@ class Logger:
         """
         caller = get_caller_info()
         header = f"[bright_black]\\[{caller.filename}:{caller.lineno}] [white]\\[Info]"
-        if self.Fatal >= self.emit_level:
+        if self.Info >= self.emit_level:
             Console().print(f"{header} {message}", highlight=False)
         return
 
@@ -96,7 +94,7 @@ class Logger:
         """
         caller = get_caller_info()
         header = f"[bright_black]\\[{caller.filename}:{caller.lineno}] [gold3]\\[Warning]"
-        if self.Fatal >= self.emit_level:
+        if self.Warning >= self.emit_level:
             Console().print(f"{header} {message}", highlight=False)
         return
 

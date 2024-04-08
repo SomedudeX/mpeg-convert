@@ -63,5 +63,7 @@ class InteractiveApp(App):
         )
 
 
-def run_module(argv: Dict[str, Any], module: List[str]) -> int:
-    ...
+def run_module(argv: Dict[str, Any], log_level: int) -> int:
+    instance = InteractiveApp()
+    instance.run()
+    return 0
