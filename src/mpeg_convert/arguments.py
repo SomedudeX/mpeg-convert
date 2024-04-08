@@ -1,8 +1,21 @@
-from typing import List, Tuple, Any
-
-from .exceptions import ArgumentsError
+from typing import List, Tuple, Dict, Any
 
 AvailableModules = ["", "help", "version", "console", "interactive"]
+
+
+class ArgumentsError(Exception):
+    """An ArgumentsError should be thrown when there is an error parsing an
+    argument or there is an error in an argument.
+    """
+    def __init__(
+        self,
+        message: str,
+        code: int = 1
+    ) -> None:
+        """Initializes an ArgumentsError instance"""
+        self.message = message
+        self.code = code
+        super().__init__()
 
 
 def is_flag(arg: str) -> bool:
@@ -12,7 +25,7 @@ def is_flag(arg: str) -> bool:
 
 
 def is_stacked_flag(flag: str) -> bool:
-    """Whether a flag is stacked (e.g. `ls -la`)"""
+    """Whether a flag is stacked (e.g. `ls -la` is a stacked flag)"""
     if len(flag) <= 2:
         return False
     return flag[0] == "-" and flag[1] != "-"
@@ -28,7 +41,7 @@ def split_arguments(argv: List[str]) -> Tuple[Any, Any]:
     return argv, []
 
 
-def split_flags(flags: List[str]) -> List[Tuple[str, str | bool]]:
+def split_flags(flags: List[str]) -> List[Tuple]:
     """Splits the flags into a list of tuples such that for each tuple in the
     list, the first index will be the raw command-line argument and the second
     index will contain the specified value. For boolean flags, the value will
@@ -55,11 +68,11 @@ def split_flags(flags: List[str]) -> List[Tuple[str, str | bool]]:
             ret.append((option, value))
             del flags[0], flags[1]
             continue
-        raise ArgumentsError(f"error parsing '{current_flag}' (unexpected trailing positional)")
+        raise ArgumentsError(f"error parsing '{current_flag}' (unexpected trailing positional)", 1)
     return ret
 
 
-def parse_arguments(argv: List[str]) -> dict:
+def parse_arguments(argv: List[str]) -> Dict[str, Any]:
     """Parse command-line arguments obtained from sys.argv
     
     Returns:
@@ -105,6 +118,6 @@ def parse_arguments(argv: List[str]) -> dict:
             ret["output"] = flag[1]
             continue
         if is_stacked_flag(flag[0]):
-            raise ArgumentsError(f"stacked flag '{flag[0]}' not allowed")
-        raise ArgumentsError(f"invalid flag '{flag[0]}' received")
+            raise ArgumentsError(f"stacked flag '{flag[0]}' not allowed", 1)
+        raise ArgumentsError(f"invalid flag '{flag[0]}' received", 1)
     return ret
