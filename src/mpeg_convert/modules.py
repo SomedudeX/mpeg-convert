@@ -88,17 +88,17 @@ def start(argv: List[str]) -> int:
             exit_code = interactive.run_module(argv_properties, log_emit_level)
             return exit_code
         raise ArgumentsError(f"{base_module} is not a valid command", code=1)
-    except ArgumentsError as error:
-        log = Logger(log_emit_level)
-        log.fatal(f"ArgumentsError: {error.message}")
-        log.fatal(f"Mpeg-convert terminating with exit code {error.code}")
-        exit_code = error.code
-    except KeyboardInterrupt as error:
+    except KeyboardInterrupt:
         log = Logger(log_emit_level)
         log.warning(f"KeyboardInterrupt: Received signal interrupt")
         log.warning(f"Mpeg-convert terminating with os._exit(0)")
         exit_code = 0
         os._exit(0)
+    except ArgumentsError as error:
+        log = Logger(log_emit_level)
+        log.fatal(f"ArgumentsError: {error.message}")
+        log.fatal(f"Mpeg-convert terminating with exit code {error.code}")
+        exit_code = error.code
     except BaseException as error:
         log = Logger(log_emit_level)
         arguments = " ".join(argv)
