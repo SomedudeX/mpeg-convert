@@ -6,11 +6,7 @@ import inspect
 from rich.console import Console
 
 
-class ProgramInfo:
-    """Information regarding the program should/will be stored here so that it
-    can be referred to or changed easily
-    """
-    VERSION = "v0.2.0"
+__version__ = "v0.2.0"
 
 
 class CallerInfo:

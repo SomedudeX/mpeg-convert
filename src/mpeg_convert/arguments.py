@@ -20,8 +20,15 @@ class ArgumentsError(Exception):
 
 def is_flag(arg: str) -> bool:
     """Whether an argument is a flag"""
-    assert(len(arg) > 0)
+    assert len(arg) > 0
     return arg[0] == "-"
+
+
+def is_int(arg: str) -> bool:
+    """Whether a string can be converted to an integer"""
+    if not isinstance(arg, str):
+        return False
+    return arg.isdigit()
 
 
 def is_stacked_flag(flag: str) -> bool:
@@ -29,6 +36,13 @@ def is_stacked_flag(flag: str) -> bool:
     if len(flag) <= 2:
         return False
     return flag[0] == "-" and flag[1] != "-"
+
+
+def process_bool_flag(flag: tuple) -> int | str:
+    """Attempts to convert an integer flag into a boolean"""
+    if not is_int(flag[1]):
+        return flag[1]
+    return bool(int(flag[1]))
 
 
 def split_arguments(argv: List[str]) -> Tuple[Any, Any]:
@@ -49,6 +63,8 @@ def split_flags(flags: List[str]) -> List[Tuple]:
     """
     ret = []
     for _ in range(len(flags)):
+        if len(flags) == 0:
+            break
         current_flag = flags[0]
         if "=" in current_flag:
             option = current_flag.split("=")[0]
@@ -66,10 +82,27 @@ def split_flags(flags: List[str]) -> List[Tuple]:
             option = current_flag
             value = flags[1]
             ret.append((option, value))
-            del flags[0], flags[1]
+            del flags[0], flags[0]
             continue
         raise ArgumentsError(f"error parsing '{current_flag}' (unexpected trailing positional)", 1)
     return ret
+
+
+def validate_argument_type(arguments: Dict[str, str]) -> None:
+    """Validate the type of the arguments given by the user
+
+    Parameters:
+        arguments: The arguments to validate
+    """
+    if not isinstance(arguments["preset"], str):
+        raise ArgumentsError(f"expected a string for argument '--preset', got '{arguments['preset']}' instead", 1)
+    if not isinstance(arguments["debug"], bool):
+        raise ArgumentsError(f"expected a boolean for argument '--debug', got '{arguments['debug']}' instead", 1)
+    if not isinstance(arguments["quiet"], bool):
+        raise ArgumentsError(f"expected a boolean for argument '--quiet', got '{arguments['quiet']}' instead", 1)
+    if arguments["quiet"] and arguments["debug"]:
+        raise ArgumentsError(f"flags '--debug' and '--quiet' cannot be both specified", 1)
+    return
 
 
 def parse_arguments(argv: List[str]) -> Dict[str, Any]:
@@ -90,11 +123,12 @@ def parse_arguments(argv: List[str]) -> Dict[str, Any]:
         If any further options are to be added to any module, make sure to add
         the flags here.
     """
-    ret = {}
-    ret["module"] = [""]    # Defaults
-    ret["preset"] = ""
-    ret["debug"] = False
-    ret["quiet"] = False
+    ret = {
+        "module": [""],
+        "preset": "",
+        "debug": False,
+        "quiet": False
+    }
 
     positionals, flags = split_arguments(argv)
     
@@ -103,10 +137,10 @@ def parse_arguments(argv: List[str]) -> Dict[str, Any]:
 
     for flag in flags:   # Mapping each command line flag to a dictionary key
         if flag[0] == "--debug" or flag[0] == "-d":
-            ret["debug"] = flag[1]
+            ret["debug"] = process_bool_flag(flags[0])
             continue
         if flag[0] == "--quiet" or flag[0] == "-q":
-            ret["quiet"] = flag[1]
+            ret["quiet"] = process_bool_flag(flags[0])
             continue
         if flag[0] == "--preset":
             ret["preset"] = flag[1]
