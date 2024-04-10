@@ -17,10 +17,10 @@ class CallerInfo:
 
 class Logger:
     """A Logger class that prints to the console"""
-    Debug   = 1
-    Info    = 2
+    Debug = 1
+    Info = 2
     Warning = 3
-    Fatal   = 4
+    Fatal = 4
 
     def __init__(
         self,
@@ -51,7 +51,7 @@ class Logger:
 
     def debug(
         self,
-        message: str, 
+        message: str,
     ) -> None:
         """Log the specified message to the console with `debug` severity
 
@@ -66,7 +66,7 @@ class Logger:
 
     def info(
         self,
-        message: str, 
+        message: str,
     ) -> None:
         """Log the specified message to the console with `info` severity
 
@@ -81,7 +81,7 @@ class Logger:
 
     def warning(
         self,
-        message: str, 
+        message: str,
     ) -> None:
         """Log the specified message to the console with `warning` severity
 
@@ -96,7 +96,7 @@ class Logger:
 
     def fatal(
         self,
-        message: str, 
+        message: str,
     ) -> None:
         """Log the specified message to the console with the `fatal` severity
 
@@ -128,7 +128,7 @@ def expand_paths(path: str) -> str:
     """Expand relative paths or paths with tilde (~) to absolute paths"""
     return os.path.normpath(
         os.path.join(
-            os.environ["PWD"], 
+            os.environ["PWD"],
             os.path.expanduser(path)
         )
     )
