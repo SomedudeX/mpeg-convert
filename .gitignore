@@ -1,5 +1,6 @@
-.DS_Store
-__pycache__
+venv/
 dist/
 .idea/
+.DS_Store
 *.egg-info
+__pycache__
