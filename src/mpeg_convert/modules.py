@@ -7,8 +7,9 @@ from .core import version
 from .core import convert
 from .core import interactive
 
-from .utils import Logger, __version__
 from .core.version import get_platform_version, get_python_version
+
+from .utils import Logger, __version__
 from .arguments import ArgumentsError, parse_arguments, validate_argument_type
 
 

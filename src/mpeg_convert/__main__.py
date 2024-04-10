@@ -24,7 +24,7 @@
 import sys
 
 from typing import List
-from mpeg_convert import modules
+from . import modules
 
 
 def main(argv: List[str]) -> int:

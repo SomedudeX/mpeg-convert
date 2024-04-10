@@ -113,14 +113,14 @@ class Logger:
 def get_caller_info() -> CallerInfo:
     """Gets the information of the caller of the function via python inspect"""
     stacktrace = inspect.stack()
-    frameinfo = inspect.getframeinfo(stacktrace[2][0])
+    frame_info = inspect.getframeinfo(stacktrace[2][0])
     if sys.platform == "win32":
-        filename = frameinfo.filename.split("\\")
+        filename = frame_info.filename.split("\\")
     else:
-        filename = frameinfo.filename.split("/")
+        filename = frame_info.filename.split("/")
     ret = CallerInfo()
     ret.filename = filename[len(filename) - 1]
-    ret.lineno = frameinfo.lineno
+    ret.lineno = frame_info.lineno
     return ret
 
 
