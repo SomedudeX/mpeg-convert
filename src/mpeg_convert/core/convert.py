@@ -1,5 +1,5 @@
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 
-def run_module(argv: Dict[str, Any], log_level: int) -> int:
+def run_module(argv: Dict[Any, Any]) -> int:
     ...

@@ -1,46 +1,41 @@
-import sys
-import platform
-
 from typing import Any, Dict
 
-from ..utils import __version__, Logger
 from ..arguments import ArgumentsError
-
-log = Logger()
-
-
-def get_python_version(long: bool = False) -> str:
-    if not long:
-        return f"{platform.python_version()}"
-    return f"{platform.python_implementation()} {sys.version}"
+from ..utils import __version__, console, logger
+from ..utils import get_platform_version, get_python_version
 
 
-def get_platform_version() -> str:
-    return f"{platform.platform(True, True)} {platform.machine()}"
+def initialize(arguments: Dict[str, Any]) -> None:
+    """Prints local debug messages to the console"""
+    if arguments["output"]:
+        logger.log("flag output path has been ignored by 'version' command")
+    if arguments["output"]:
+        logger.log("flag input path has been ignored by 'version' command")
+    logger.log("starting module version")
+    return
 
 
 def print_version():
     """Prints the version information to the console"""
-    _prgram_version = __version__
-    _python_version = get_python_version()
-    _system_version = get_platform_version()
+    logger.log("gathering system information")
+    _prgram_version = __version__.lower()
+    _python_version = get_python_version().lower()
+    _system_version = get_platform_version().lower()
 
-    print(f"Program  : {_prgram_version}")
-    print(f"Python   : {_python_version}")
-    print(f"Platform : {_system_version}")
-    print(f"Made with ♡ by Zichen")
-
-
-def validate_arguments(argv_properties: Dict[str, Any], log_level: int) -> None:
-    if len(argv_properties["module"]) > 1:
-        raise ArgumentsError(f"unexpected positional argument '{argv_properties["module"][1]}'", code=65)
-    if argv_properties["preset"] != "":
-        raise ArgumentsError(f"unsupported option preset for command 'version'", code=65)
-    log.change_emit_level(log_level)
-    log.debug("Finished module level arguments parsing")
+    console.print(f"program  : {_prgram_version}")
+    console.print(f"python   : {_python_version}")
+    console.print(f"platform : {_system_version}")
+    console.print(f"made with ♡ by zichen")
 
 
-def run_module(argv: Dict[str, Any], log_level: int) -> int:
-    validate_arguments(argv, log_level)
-    print_version()
-    return 0
+def run_module(argv: Dict[str, Any]) -> int:
+    """Runs the version module (command)"""
+    initialize(argv)
+    if argv["module"] == ["version"]:
+        print_version()
+        return 0
+    raise ArgumentsError(
+        f"invalid positional argument(s) '{' '.join(argv['module'])}' " + 
+        f"received by version command", code=16
+    )
+    
