@@ -21,6 +21,7 @@ class Logger(Console):
     def __init__(self, *args, **kwargs) -> None:
         """Initializes an instance of Logger"""
         super().__init__(*args, **kwargs)
+        self.style = "bright_black"
         self.quiet = True  # Set quiet to true initially
         return
 
@@ -38,7 +39,14 @@ class Logger(Console):
         if not self.quiet:
             caller = get_caller_info()
             processed_message = f"{caller.filename}:{caller.lineno} {message}"
-            self.print(f"[bright_black]{processed_message}", **kwargs)
+            self.print(f"{processed_message}", **kwargs)
+
+
+def move_caret_newline() -> None:
+    """Prints a newline if the caret is not already on a blank line"""
+    if get_caret_position()[0] != 1:
+        print()
+    return
 
 
 def get_caller_info() -> FunctionInfo:
@@ -55,7 +63,7 @@ def get_caller_info() -> FunctionInfo:
 
 
 def supports_unicode() -> bool:
-    """Returns Trueif the terminal supports unicode, false otherwise"""
+    """Returns True if the terminal supports unicode, false otherwise"""
     if sys.stdout.encoding != None:
         return sys.stdout.encoding.lower().startswith('utf')
     return False
@@ -98,7 +106,7 @@ def get_caret_position() -> Tuple[int, int]:
     how-can-i-get-the-cursors-position-in-an-ansi-terminal?noredirect=1&lq=1
     """
     if not supports_color:  # Default to printing a newline if the terminal
-        print()             # does not suppport ANSI escape codes
+        print()             # does not support ANSI escape codes
         return (-1, -1)
     if sys.platform == "win32":
         OldStdinMode = ctypes.wintypes.DWORD()
@@ -129,10 +137,3 @@ def get_caret_position() -> Tuple[int, int]:
     if res:
         return (int(res.group("x")), int(res.group("y")))
     return (-1, -1)
-
-
-def move_caret_newline() -> None:
-    """Prints a newline if the caret is not already on a blank line"""
-    if get_caret_position()[0] != 1:
-        print()
-    return

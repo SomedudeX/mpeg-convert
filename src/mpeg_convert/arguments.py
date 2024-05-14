@@ -83,7 +83,7 @@ def split_flags(flags: List[str]) -> List[ArgumentFlag]:
             continue
         raise ArgumentsError(
             f"error parsing '{current_flag}'" + 
-            "(unexpected trailing positional)", code=1)
+            "(unexpected trailing positional)", code=2)
     return ret
 
 
@@ -92,6 +92,7 @@ def parse_arguments(argv: List[str]) -> Dict[str, Any]:
     positionals, flags = split_arguments(argv[1:])
     parsed_arguments = {
         "module": [""],
+        "preset": "",
         "output": False,
         "input": False,
         "debug": False
@@ -101,6 +102,9 @@ def parse_arguments(argv: List[str]) -> Dict[str, Any]:
         parsed_arguments["module"] = positionals
 
     for flag in flags:   # Mapping each command line flag to a dictionary key
+        if flag.arg == "--preset" or flag.arg == "-p":
+            parsed_arguments["preset"] = flag.val
+            continue
         if flag.arg == "--output" or flag.arg == "-o":
             parsed_arguments["output"] = flag.val
             continue
@@ -111,6 +115,6 @@ def parse_arguments(argv: List[str]) -> Dict[str, Any]:
             parsed_arguments["debug"] = process_bool_flag(flag.val)
             continue
         if is_stacked_flag(flag.arg):
-            raise ArgumentsError(f"stacked flag '{flag.arg}' not allowed", code=1)
-        raise ArgumentsError(f"invalid flag '{flag.arg}' received", code=1)
+            raise ArgumentsError(f"stacked flag '{flag.arg}' not allowed", code=2)
+        raise ArgumentsError(f"invalid flag '{flag.arg}' received", code=2)
     return parsed_arguments
