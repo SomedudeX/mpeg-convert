@@ -61,7 +61,7 @@ def catch(exceptions: CatchableExceptions, message: str, code: int = 1):
     in the exceptions parameter. 
     
     If any exceptions are caught, throw a ForceExit exception with the reason specified 
-    in the message parameter, and the exit code specified by the parameter code (defaulted
+    in the message parameter, and the exit code specified by the code parameter (defaulted
     to 1)
     """
     T = TypeVar("T")

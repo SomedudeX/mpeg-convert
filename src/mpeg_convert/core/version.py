@@ -38,6 +38,6 @@ def run_module(argv: Dict[str, Any]) -> int:
         return 0
     raise ArgumentsError(
         f"invalid positional argument(s) '{' '.join(argv['module'])}' " + 
-        f"received by version command", code=16
+        f"received by version command", code=2
     )
     
