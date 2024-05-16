@@ -21,7 +21,9 @@
 #
 # This project uses 4 spaces for indentation.
 
+import os
 import sys
+import inspect
 
 from typing import Any, Dict, List
 
@@ -65,29 +67,35 @@ def main(argv: List[str]) -> int:
         return start_module(arguments)
     except KeyboardInterrupt:
         move_caret_newline()
-        utils.console.print(f" • mpeg-convert received keyboard interrupt")
-        utils.console.print(f" • mpeg-convert terminating with exit code 1")
+        utils.console.print(f" • mpeg-convert received keyboard interrupt", style="tan")
+        utils.console.print(f" • mpeg-convert terminating with exit code 1", style="tan")
         return 1
     except ArgumentsError as e:
         move_caret_newline()
-        utils.console.print(f" • mpeg-convert received inapt arguments: {e.arguments}")
-        utils.console.print(f" • mpeg-convert terminating with exit code {e.exit_code}")
+        utils.console.print(f" • mpeg-convert received inapt arguments: {e.arguments}", style="red")
+        utils.console.print(f" • mpeg-convert terminating with exit code {e.exit_code}", style="red")
         return e.exit_code
     except ForceExit as e:
         move_caret_newline()
+        lineno = e.original_thrower.lineno
+        function = e.original_thrower.function
+        filename = os.path.basename(e.original_thrower.filename)
         utils.debug.log(f"an exception has been encountered")
-        utils.debug.log(f"the exception details will be printed below")
-        utils.debug.log(f"{exception_name(e.original)} — {str(e.original).lower()}")
-        utils.console.print(f" • mpeg-convert has been interrupted because {e.reason}")
-        utils.console.print(f" • mpeg-convert terminating with exit code {e.exit_code}")
+        utils.debug.log(f"the exception has been raised by {function} at {filename}:{lineno}")
+        utils.debug.log(f"{exception_name(e.original)}: {str(e.original).lower()}")
+        utils.console.print(f" • mpeg-convert has been interrupted because {e.reason}", style="red")
+        utils.console.print(f" • mpeg-convert terminating with exit code {e.exit_code}", style="red")
         return e.exit_code
     except Exception as e:
         move_caret_newline()
+        lineno = inspect.trace()[-1].lineno
+        function = inspect.trace()[-1].function
+        filename = os.path.basename(inspect.trace()[-1].filename)
         utils.debug.log(f"an exception has been encountered")
-        utils.debug.log(f"the exception details will be printed below")
-        utils.debug.log(f"{exception_name(e)} — {str(e).lower()}")
-        utils.console.print(f" • mpeg-convert received an unknown {exception_name(e)}")
-        utils.console.print(f" • mpeg-convert terminating with exit code 255")
+        utils.debug.log(f"the exception has been raised by {function} at {filename}:{lineno}")
+        utils.debug.log(f"{exception_name(e)}: {str(e).lower()}")
+        utils.console.print(f" • mpeg-convert received an unknown {exception_name(e)}", style="red")
+        utils.console.print(f" • mpeg-convert terminating with exit code 255", style="red")
         return -1
 
 

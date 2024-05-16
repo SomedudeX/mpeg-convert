@@ -1,4 +1,5 @@
 import re
+import os
 import sys
 import inspect
 
@@ -12,7 +13,11 @@ from rich.console import Console
 class FunctionInfo:
     """The info of a function (filename and lineno)"""
     lineno = -1
+    function = ""
     filename = ""
+
+    def __repr__(self):
+        return f"{self.filename}:{self.lineno}"
 
 
 class Logger(Console):
@@ -38,7 +43,7 @@ class Logger(Console):
         """Logs a message to the console with filename and lineno info"""
         if not self.quiet:
             caller = get_caller_info()
-            processed_message = f"{caller.filename}:{caller.lineno} {message}"
+            processed_message = f"{caller} {message}"
             self.print(f"{processed_message}", **kwargs)
 
 
@@ -54,10 +59,9 @@ def get_caller_info() -> FunctionInfo:
     stacktrace = inspect.stack()
     frame_info = inspect.getframeinfo(stacktrace[2][0])
 
-    path_split = "/" if sys.platform != "win32" else "\\"
-    filename = frame_info.filename.split(path_split)
     ret = FunctionInfo()
-    ret.filename = filename[len(filename) - 1]
+    ret.filename = os.path.basename(frame_info.filename)
+    ret.function = frame_info.function
     ret.lineno = frame_info.lineno
     return ret
 

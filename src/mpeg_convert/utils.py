@@ -4,8 +4,8 @@ import json
 import platform
 
 from json import JSONDecodeError
+from pathlib import Path
 from rich.console import Console
-
 from typing import Any, Dict, List
 
 from .exceptions import catch
@@ -18,14 +18,20 @@ __version__ = "v0.2.0"
 console = Console(highlight=False)
 debug = Logger(highlight=False)
 
-root_path = "~/.local/share/mpeg-convert"
-preset_path = "~/.local/share/mpeg-convert/preset.json"
+ROOT_PATH = "~/.local/share/mpeg-convert/"
+MODULE_PATH = os.path.dirname(__file__) + "/"
 
 
 class Preset:
-    """Represents a user-defined conversion preset"""
-    name: str
-    command: str
+    """Represents a conversion preset"""
+    name: str = ""
+    command: str = ""
+
+    def __repr__(self) -> str:
+        return f"{self.name}: {self.command}"
+    
+    def dict(self) -> dict:
+        return { "name": self.name, "command": self.command }
 
 
 def get_python_version() -> str:
@@ -38,7 +44,7 @@ def get_platform_version() -> str:
     return f"{platform.platform(True, True)} {platform.machine()}"
 
 
-def check_tty():
+def check_interactivity():
     """Checks whether the console is a tty, and print a warning if not"""
     if not (hasattr(sys.stdout, "isatty") or sys.stdout.isatty()):
         console.print(" • warning: mpeg-convert is not being run in a tty")
@@ -54,24 +60,8 @@ def enable_debug() -> None:
     return
 
 
-def create_folder(path: str) -> None:
-    """Create a folder if it does not already exist"""
-    if not os.path.exists(path):
-        os.makedirs(path)
-    return
-
-
-def create_json(path: str) -> None:
-    """Create a json file if it does not already exist"""
-    if not os.path.exists(path):
-        file = open(path, "w")
-        json.dump([], file)
-        file.close()
-    return
-
-
 def expand_paths(path: str) -> str:
-    """Expand relative paths or paths with tilde (~) to absolute paths"""
+    """Expand relative paths or paths with tilde (~) and dot (.) to absolute paths"""
     return os.path.normpath(
         os.path.join(
             os.environ["PWD"],
@@ -80,24 +70,42 @@ def expand_paths(path: str) -> str:
     )
 
 
-@catch((JSONDecodeError, KeyError), "an error occurred when reading presets")
+@catch((JSONDecodeError, KeyError, OSError), "an error occurred when reading presets")
 def load_presets() -> List[Preset]:
+    """Loads user-defined preset from a json file into a list"""
     ret = []
-    with open(expand_paths(preset_path), "r") as preset:
+    debug.log(f"reading user-defined presets")
+    with open(expand_paths(ROOT_PATH + "preset.json"), "r") as preset:
         presets = json.load(preset)
         for preset in presets:
             current_preset = Preset()
             current_preset.name = preset["name"]
             current_preset.command = preset["command"]
             ret.append(current_preset)
+            debug.log(f"{current_preset}")
     return ret
 
 
+@catch(OSError, "an error occured when writing presets")
+def write_presets(presets: List[Preset]) -> None:
+    """Write a list of preset into a json file"""
+    dict_presets = [preset.dict() for preset in presets]
+    with open(expand_paths(ROOT_PATH + "preset.json"), "w") as f:
+        json.dump(dict_presets, f)
+    return
+
+
+@catch(OSError, "an error occurred when initializing files and directories")
 def initialize(arguments: Dict[str, Any]) -> None:
     """Checks terminal integrity and enables debug logging if applicable"""
-    check_tty()
-    create_folder(expand_paths(root_path))
-    create_json(expand_paths(preset_path))
+    check_interactivity()
     if arguments["debug"]:
         enable_debug()
+    if not os.path.exists(expand_paths(ROOT_PATH)):
+        os.makedirs(expand_paths(ROOT_PATH))
+    if not os.path.exists(expand_paths(ROOT_PATH + "preset.json")):
+        with open(expand_paths(MODULE_PATH + "assets/default.json")) as f:
+            default = json.load(f)
+        with open(expand_paths(ROOT_PATH + "preset.json"), "w") as f:
+            json.dump(default, f)
     return
