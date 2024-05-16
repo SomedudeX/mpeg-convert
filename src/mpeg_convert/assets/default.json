@@ -1,0 +1,6 @@
+[
+    {
+        "name": "default", 
+        "command": "-c:v copy -c:a copy -preset veryslow"
+    }
+]
