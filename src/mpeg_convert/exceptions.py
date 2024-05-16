@@ -1,8 +1,11 @@
 import re
+import os
+import inspect
 import functools
 
 from typing import Callable, TypeVar
 from typing import Tuple, Type, TypeAlias, Union
+from .term import FunctionInfo
 
 # (For type-checkers) To spell out an exception type that could be catched in the try-except block
 ExceptionType: TypeAlias = Type[BaseException]
@@ -38,6 +41,7 @@ class ForceExit(Exception):
         self,
         reason: str,
         original_exception: BaseException = Exception(),
+        original_thrower: FunctionInfo = FunctionInfo(),
         code: int = 1
     ) -> None:
         """Initializes a ForceExit instance"""
@@ -45,6 +49,7 @@ class ForceExit(Exception):
         self.exit_code = code
         self.reason = reason
         self.original = original_exception
+        self.original_thrower = original_thrower
         return
 
 
@@ -72,7 +77,12 @@ def catch(exceptions: CatchableExceptions, message: str, code: int = 1):
             try:
                 ret = func(*args, **kwargs)
             except exceptions as e:
-                raise ForceExit(message, original_exception=e, code=code)
+                original_exception = e
+                original_thrower = FunctionInfo()
+                original_thrower.lineno = inspect.trace()[-1].lineno
+                original_thrower.function = inspect.trace()[-1].function
+                original_thrower.filename = os.path.basename(inspect.trace()[-1].filename)
+                raise ForceExit(message, original_exception=original_exception, original_thrower=original_thrower, code=code)
             return ret
         return wrapper
     return decorator
