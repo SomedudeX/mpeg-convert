@@ -12,7 +12,7 @@ def initialize(arguments: Dict[str, Any]) -> None:
     if arguments["output"]:
         debug.log("flag output path has been ignored by 'version' command")
     if arguments["preset"]:
-        debug.log("flag preset path has been ignored by 'version' command")
+        debug.log("flag preset has been ignored by 'version' command")
     debug.log("starting module version")
     return
 

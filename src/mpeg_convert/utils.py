@@ -4,7 +4,6 @@ import json
 import platform
 
 from json import JSONDecodeError
-from pathlib import Path
 from rich.console import Console
 from typing import Any, Dict, List
 
@@ -28,7 +27,7 @@ class Preset:
     command: str = ""
 
     def __repr__(self) -> str:
-        return f"{self.name}: {self.command}"
+        return f"+ {self.name}" + " " * (10 - len(self.name)) + f"{self.command}"
     
     def dict(self) -> dict:
         return { "name": self.name, "command": self.command }
@@ -74,7 +73,7 @@ def expand_paths(path: str) -> str:
 def load_presets() -> List[Preset]:
     """Loads user-defined preset from a json file into a list"""
     ret = []
-    debug.log(f"reading user-defined presets")
+    debug.log(f"reading user-defined presets:")
     with open(expand_paths(ROOT_PATH + "preset.json"), "r") as preset:
         presets = json.load(preset)
         for preset in presets:
@@ -90,6 +89,7 @@ def load_presets() -> List[Preset]:
 def write_presets(presets: List[Preset]) -> None:
     """Write a list of preset into a json file"""
     dict_presets = [preset.dict() for preset in presets]
+    debug.log("opening presets.json to write presets to disk")
     with open(expand_paths(ROOT_PATH + "preset.json"), "w") as f:
         json.dump(dict_presets, f)
     return

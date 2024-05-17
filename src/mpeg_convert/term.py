@@ -19,6 +19,9 @@ class FunctionInfo:
     def __repr__(self):
         return f"{self.filename}:{self.lineno}"
 
+    def __len__(self):
+        return len(self.__repr__())
+
 
 class Logger(Console):
     """A singleton class that logs to the console"""
@@ -43,7 +46,8 @@ class Logger(Console):
         """Logs a message to the console with filename and lineno info"""
         if not self.quiet:
             caller = get_caller_info()
-            processed_message = f"{caller} {message}"
+            size = self.size.width
+            processed_message = f"{message}{" " * (size - len(message) - len(caller))}{caller}"
             self.print(f"{processed_message}", **kwargs)
 
 
