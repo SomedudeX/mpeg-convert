@@ -31,9 +31,9 @@ def is_int(arg: str) -> bool:
 def process_bool_flag(value: str) -> Union[int, str]:
     """Attempts to convert an integer flag into a boolean"""
     if not is_int(value):
-        if value.lower() == "true":
+        if isinstance(value, str) and value.lower() == "true":
             return True
-        if value.lower() == "false":
+        if isinstance(value, str) and value.lower() == "false":
             return False
         return value
     return bool(int(value))
