@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mpeg-convert"
-version = "0.2.0"
+version = "0.2.1"
 requires-python = ">=3.7"
 description = "A python wrapper that enhances the user experience and productivity when using ffmpeg"
 authors = [{ name = "Zichen" }]
