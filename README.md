@@ -1,4 +1,4 @@
-A customizable<sup>[1](#Configuring)</sup> tool that provides some quality-of-life additions for [FFmpeg](https://ffmpeg.org). This tool adds features such as pretty printing, progress bars, and command presets.
+A customizable<sup>[1](#Configuring)</sup> tool that provides some quality-of-life additions for [FFmpeg](https://ffmpeg.org) such as pretty printing, progress bars, and command presets. This tool does not aim to replace FFmpeg or other transcoding software such as [Handbrake](https://handbrake.fr/). Rather, it tries to provide an easier to use interface to FFmpeg for simple operations. 
 
 ## Installation 
 
@@ -9,7 +9,7 @@ $ pip install --upgrade mpeg-convert
 $ mpeg-convert --help
 ```
 
-This tool does not aim to replace FFmpeg or any other conversion software such as [Handbrake](https://handbrake.fr/). Rather, it tries to improve the user experience and productivity when using FFmpeg. See [usages](#Usage) and [configuring](#Configuring) for more details. 
+See [usages](#Usage) and [configuring](#Configuring) for more details. 
 
 ## Usage
 
@@ -21,7 +21,7 @@ $ mpeg-convert sample.mp4 output.mov
 
 ![no_preset_nobg](https://github.com/SomedudeX/mpeg-convert/assets/101906945/f990118f-0f3c-4f0d-aabf-5afa65efdb37)
 
-For conversions where you may need or want to tweak extra options (e.g. frame rate, constrast, or bitrate changes), you can add a named or unnamed preset by following the [configuration guide](#Configuring). After you have saved your custom preset to the config file, you can use it by using the `--preset` flag for named presets, or convert between matching file containers/extensions for unnamed presets. This will use the extra custom FFmpeg options you specified in the preset when transcoding. This is demonstrated below:
+For conversions where you may need or want to tweak extra options (e.g. frame rate, contrast, or bitrate changes), you can add a named or unnamed preset by following the [configuration guide](#Configuring). After you have saved your custom preset to the config file, you can use it by using the `--preset` flag for named presets, or convert between matching file containers/extensions for unnamed presets. This will use the extra custom FFmpeg options you specified in the preset when transcoding. This is demonstrated below:
 
 ```bash
 $ mpeg-convert sample.mp4 output.mov --preset="custom-1080p"
@@ -80,5 +80,10 @@ When searching for matching presets, `mpeg-convert` will check using the followi
 ## Notes
 
 This project has undergone substantial changes in `v0.2.0`. Click [here](https://github.com/SomedudeX/mpeg-convert/blob/15f4026633c5da667e6283cdeb78d82b29cd1b3d/README.md) if you are looking for documentation before `v0.2.0`
+
+This project has been tested in the following environments:
+ * Python 3.9.1 (Windows)
+ * Python 3.8.19 (Linux)
+ * Python 3.12.2 (macOS)
 
 --
