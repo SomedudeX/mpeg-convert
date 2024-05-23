@@ -7,7 +7,6 @@ import ctypes
 import termios
 
 from typing import Tuple
-from rich.console import Console
 
 
 class FunctionInfo:
@@ -89,8 +88,8 @@ def get_caret_position() -> Tuple[int, int]:
         print()               # does not support ANSI escape codes
         return (-1, -1)
     if sys.platform == "win32":
-        OldStdinMode = ctypes.wintypes.DWORD()
-        OldStdoutMode = ctypes.wintypes.DWORD()
+        OldStdinMode = ctypes.wintypes.DWORD() # type: ignore
+        OldStdoutMode = ctypes.wintypes.DWORD() # type: ignore
         kernel32 = ctypes.windll.kernel32
         kernel32.GetConsoleMode(kernel32.GetStdHandle(-10), ctypes.byref(OldStdinMode))
         kernel32.SetConsoleMode(kernel32.GetStdHandle(-10), 0)

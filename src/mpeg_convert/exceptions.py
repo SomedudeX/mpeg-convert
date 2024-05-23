@@ -1,11 +1,8 @@
 import re
-import os
-import traceback
 import functools
 
 from typing import Callable, TypeVar
 from typing import Tuple, Type, TypeAlias, Union
-from .term import FunctionInfo, get_caller_info
 
 # (For type-checkers) To spell out an exception type that could be catched in the try-except block
 ExceptionType: TypeAlias = Type[BaseException]

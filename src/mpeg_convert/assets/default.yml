@@ -3,9 +3,9 @@
 
 named:
 - name: "default"
-  command: "-c:v copy -c:a copy"
+  options: "-c:v copy -c:a copy"
 
 unnamed:
-- from-type: "aac"
-  to-type: "mp3"
-  command: "-b:a 256k -ar 44100"
+- from-type: ["aac"]
+  to-type: ["mp3"]
+  options: "-b:a 256k -ar 44100"

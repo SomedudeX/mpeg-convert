@@ -38,7 +38,7 @@ from .exceptions import ArgumentsError, ForceExit, exception_name
 def start_module(arguments: Dict[Any, Any]) -> int:
     """Starts the main program by initializing the correct module"""
     if len(arguments["module"]) == 1:
-        arg_help = (arguments["help"])
+        arg_help = (arguments["help"] or not (arguments["version"] or arguments["config"]))
         arg_version = (arguments["version"] and not arguments["help"])
         arg_config = (arguments["config"] and not arg_help and not arg_version)
         if arg_help:
@@ -82,8 +82,8 @@ def main(argv: List[str]) -> int:
         function = inspect.trace()[-1].function
         filename = os.path.basename(inspect.trace()[-1].filename)
         utils.console.print(f" • mpeg-convert received an unknown {exception_name(e)}", style="red")
-        utils.console.print(f"    - raised by function {function} at {filename}:{lineno}", style="red")
-        utils.console.print(f"    - exception cause: {str(e).lower()}", style="red")
+        utils.console.print(f"    - raised by function {function} at {filename}:{lineno}", style="red", markup=False)
+        utils.console.print(f"    - exception cause: {str(e).lower()}", style="red", markup=False)
         utils.console.print(f" • mpeg-convert terminating with exit code 255", style="red")
         return 255
 

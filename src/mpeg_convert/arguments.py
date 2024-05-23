@@ -31,6 +31,10 @@ def is_int(arg: str) -> bool:
 def process_bool_flag(value: str) -> Union[int, str]:
     """Attempts to convert an integer flag into a boolean"""
     if not is_int(value):
+        if value.lower() == "true":
+            return True
+        if value.lower() == "false":
+            return False
         return value
     return bool(int(value))
 
@@ -94,6 +98,7 @@ def parse_arguments(argv: List[str]) -> Dict[str, Any]:
         "module": [""],
         "config": False,
         "preset": False,
+        "plain": False,
         "version": False,
         "help": False
     }
@@ -107,6 +112,9 @@ def parse_arguments(argv: List[str]) -> Dict[str, Any]:
             continue
         if flag.arg == "--config":
             parsed_arguments["config"] = process_bool_flag(flag.val)
+            continue
+        if flag.arg == "--plain" or flag.arg == "-p":
+            parsed_arguments["plain"] = process_bool_flag(flag.val)
             continue
         if flag.arg == "--version" or flag.arg == "-v":
             parsed_arguments["version"] = process_bool_flag(flag.val)

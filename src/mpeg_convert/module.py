@@ -154,7 +154,7 @@ def get_unnamed_command(presets: List[UnnamedPreset], inpath: str, outpath: str)
     in_ext = inpath.split(".")[1]
     out_ext = outpath.split(".")[1]
     for preset in presets:
-        if preset.from_type == in_ext and preset.to_type == out_ext:
+        if in_ext in preset.from_type and out_ext in preset.to_type:
             return preset
     return None
 
@@ -180,31 +180,35 @@ def convert(arguments: Dict[str, Any]) -> None:
         raise ForceExit("input path does not exist")
     if os.path.exists(output_path):
         console.print(f" • specified output path already exists", style="tan")
-        console.print(f" • would you like to override the file? (Y/n) ", style="tan", end="")
+        console.print(f" > would you like to override the file? (Y/n) ", style="tan", end="")
         affirm = input()
         if not affirm == "Y":
             raise ForceExit("user terminated operation")
         
     preset: Union[NamedPreset, UnnamedPreset, None] = None
-    if get_named_command(named_presets, arguments["preset"]) != None and not preset:
-        preset = get_named_command(named_presets, arguments["preset"])
-        console.print(f" • using matching named preset '{preset.name}'") # type: ignore
-        console.print(f" • options applied: '{preset.command}'")  # type: ignore
-    if get_unnamed_command(unnamed_presets, input_path, output_path) != None and not preset:
-        preset = get_unnamed_command(unnamed_presets, input_path, output_path)
-        console.print(f" • using matching unnamed preset ({preset.from_type} to {preset.to_type})") # type: ignore
-        console.print(f" • options applied: '{preset.command}'") # type: ignore
-    if not preset:
+    if not arguments["plain"]:
+        if get_named_command(named_presets, arguments["preset"]) != None and not preset:
+            preset = get_named_command(named_presets, arguments["preset"])
+            console.print(f" • using matching named preset '{preset.name}'") # type: ignore
+            console.print(f" • options applied: '{preset.options}'")  # type: ignore
+        if get_unnamed_command(unnamed_presets, input_path, output_path) != None and not preset:
+            preset = get_unnamed_command(unnamed_presets, input_path, output_path)
+            console.print(f" • using matching unnamed preset ({input_path.split('.')[1]} to {output_path.split('.')[1]})") # type: ignore
+            console.print(f" • options applied: '{preset.options}'") # type: ignore
+        if not preset:
+            preset = UnnamedPreset()
+            console.print(f" • using default preset because no matching presets were found")
+            console.print(f" • no options will be used in the default preset")
+    else:
         preset = UnnamedPreset()
-        console.print(f" • using default preset because no matching presets were found")
+        console.print(f" • using default preset because '--plain' flag is used")
         console.print(f" • no options will be used in the default preset")
-
-    options: Dict = parse_custom_command(preset.command)
+    options: Dict = parse_custom_command(preset.options)
 
     try:
         execute(input_path, output_path, options)
     except FFmpegError as e:
-        console.print(f" • mpeg-convert received an ffmpegerror", style="red")
+        console.print(f" • mpeg-convert received an ffmpeg_error", style="red")
         console.print(f"    - error message from ffmpeg: '{e.message.lower()}'", style="red")
         console.print(f"    - common pitfalls when using ffmpeg/mpeg-convert: ", style="red")
         console.print(f"       * does the output file have an extension? ", style="red")
@@ -251,21 +255,27 @@ def execute(input_path: str, output_path: str, options: Dict) -> None:
         transient=True
     ) as bar:
         @instance.on("progress")
-        def show_prog(_progress: Progress) -> None:
+        def show_prog(progress: Progress) -> None:
             nonlocal last_frame
             bar.update(task, total=total_frame)
-            bar.update(task, advance=_progress.frame - last_frame)
-            last_frame = _progress.frame
+            bar.update(task, advance=progress.frame - last_frame)
+            last_frame = progress.frame
 
-        task = bar.add_task("[green]transcoding file...", total=None)
+        task = bar.add_task("[sea_green3] • transcoding file...", total=None)
         instance.execute()
+
+    if not os.path.exists(output_path):
+        console.print(f" • failed executing mpeg-convert", style="red")
+        console.print(f"    - no output detected with ffmpeg", style="red")
+        console.print(f"    - are you sure the preset is valid?", style="red")
+        raise ForceExit("ffmpeg did not produce any output files", code=255)
 
     total_time = round(time.time() - start_time, 2)
     total_space = readable_size(output_path)
     console.print(f" • successfully executed mpeg-convert", style="sea_green3")
-    console.print(f"    - took {total_time} seconds")
-    console.print(f"    - took {total_space} of space")
-    console.print(f"    - output file saved to '{output_path}'")
+    console.print(f"    - took {total_time} seconds", style="sea_green3")
+    console.print(f"    - took {total_space} of space", style="sea_green3")
+    console.print(f"    - output file saved to '{output_path.lower()}'", style="sea_green3")
 
 
 
