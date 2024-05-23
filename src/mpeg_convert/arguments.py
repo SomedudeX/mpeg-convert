@@ -83,7 +83,7 @@ def split_flags(flags: List[str]) -> List[ArgumentFlag]:
             continue
         raise ArgumentsError(
             f"error parsing '{current_flag}'" + 
-            "(unexpected trailing positional)", code=2)
+            "(unexpected trailing positional)", code=126)
     return ret
 
 
@@ -92,29 +92,29 @@ def parse_arguments(argv: List[str]) -> Dict[str, Any]:
     positionals, flags = split_arguments(argv[1:])
     parsed_arguments = {
         "module": [""],
-        "preset": "",
-        "output": False,
-        "input": False,
-        "debug": False
+        "config": False,
+        "preset": False,
+        "version": False,
+        "help": False
     }
 
     if len(positionals) > 0:
         parsed_arguments["module"] = positionals
 
     for flag in flags:   # Mapping each command line flag to a dictionary key
-        if flag.arg == "--preset" or flag.arg == "-p":
+        if flag.arg == "--preset":
             parsed_arguments["preset"] = flag.val
             continue
-        if flag.arg == "--output" or flag.arg == "-o":
-            parsed_arguments["output"] = flag.val
+        if flag.arg == "--config":
+            parsed_arguments["config"] = process_bool_flag(flag.val)
             continue
-        if flag.arg == "--input" or flag.arg == "-i":
-            parsed_arguments["input"] = flag.val
+        if flag.arg == "--version" or flag.arg == "-v":
+            parsed_arguments["version"] = process_bool_flag(flag.val)
             continue
-        if flag.arg == "--debug" or flag.arg == "-d":
-            parsed_arguments["debug"] = process_bool_flag(flag.val)
+        if flag.arg == "--help" or flag.arg == "-h":
+            parsed_arguments["help"] = process_bool_flag(flag.val)
             continue
         if is_stacked_flag(flag.arg):
-            raise ArgumentsError(f"stacked flag '{flag.arg}' not allowed", code=2)
-        raise ArgumentsError(f"invalid flag '{flag.arg}' received", code=2)
+            raise ArgumentsError(f"stacked flag '{flag.arg}' not allowed", code=126)
+        raise ArgumentsError(f"invalid flag '{flag.arg}' received", code=126)
     return parsed_arguments

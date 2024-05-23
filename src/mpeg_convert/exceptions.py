@@ -1,11 +1,11 @@
 import re
 import os
-import inspect
+import traceback
 import functools
 
 from typing import Callable, TypeVar
 from typing import Tuple, Type, TypeAlias, Union
-from .term import FunctionInfo
+from .term import FunctionInfo, get_caller_info
 
 # (For type-checkers) To spell out an exception type that could be catched in the try-except block
 ExceptionType: TypeAlias = Type[BaseException]
@@ -40,16 +40,12 @@ class ForceExit(Exception):
     def __init__(
         self,
         reason: str,
-        original_exception: BaseException = Exception(),
-        original_thrower: FunctionInfo = FunctionInfo(),
         code: int = 1
     ) -> None:
         """Initializes a ForceExit instance"""
         super().__init__(reason)
         self.exit_code = code
         self.reason = reason
-        self.original = original_exception
-        self.original_thrower = original_thrower
         return
 
 
@@ -58,7 +54,7 @@ def exception_name(exception: BaseException) -> str:
     camel-case naming convention to regular space-separated words. Mostly for debug
     pretty printing purposes
     """
-    return re.sub(r"(?<!^)([A-Z][a-z]+)", r" \1", type(exception).__name__).lower()
+    return re.sub(r"(?<!^)([A-Z][a-z]+)", r"_\1", type(exception).__name__).lower()
 
 
 def catch(exceptions: CatchableExceptions, message: str, code: int = 1):
@@ -76,13 +72,8 @@ def catch(exceptions: CatchableExceptions, message: str, code: int = 1):
         def wrapper(*args, **kwargs) -> T:
             try:
                 ret = func(*args, **kwargs)
-            except exceptions as e:
-                original_exception = e
-                original_thrower = FunctionInfo()
-                original_thrower.lineno = inspect.trace()[-1].lineno
-                original_thrower.function = inspect.trace()[-1].function
-                original_thrower.filename = os.path.basename(inspect.trace()[-1].filename)
-                raise ForceExit(message, original_exception=original_exception, original_thrower=original_thrower, code=code)
+            except exceptions:
+                raise ForceExit(message, code=code)
             return ret
         return wrapper
     return decorator

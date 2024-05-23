@@ -1,0 +1,11 @@
+# This is the configuration file for mpeg-convert. 
+# To learn more, head to https://github.com/SomedudeX/mpeg-convert/blob/main/README.md#configuring
+
+named:
+- name: "default"
+  command: "-c:v copy -c:a copy"
+
+unnamed:
+- from-type: "aac"
+  to-type: "mp3"
+  command: "-b:a 256k -ar 44100"
