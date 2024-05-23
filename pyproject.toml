@@ -24,7 +24,11 @@ classifiers = [
     "Environment :: Console",
 ]
 
-dependencies = ["rich>=13.7.0", "python-ffmpeg>=2.0.10"]
+dependencies = [
+    "rich>=13.7.0", 
+    "pyyaml>=6.0.1",
+    "python-ffmpeg>=2.0.10"
+]
 
 [project.urls]
 Homepage = "https://github.com/SomedudeX/mpeg-convert"

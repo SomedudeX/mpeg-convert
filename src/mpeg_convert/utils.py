@@ -1,36 +1,37 @@
 import os
 import sys
-import json
+import yaml
 import platform
+import subprocess
 
-from json import JSONDecodeError
+from yaml import YAMLError
 from rich.console import Console
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
+from ffmpeg import FFmpeg, FFmpegError
 
-from .exceptions import catch
-from .term import Logger
+from .exceptions import ForceExit, catch
 
 __version__ = "v0.2.0"
 
 # Using the console class from rich to better integrate with its
 # progress bar (e.g. printing on top of the progress bar)
 console = Console(highlight=False)
-debug = Logger(highlight=False)
 
 ROOT_PATH = "~/.local/share/mpeg-convert/"
 MODULE_PATH = os.path.dirname(__file__) + "/"
 
 
-class Preset:
-    """Represents a conversion preset"""
+class NamedPreset:
+    """Represents a named conversion preset"""
     name: str = ""
     command: str = ""
 
-    def __repr__(self) -> str:
-        return f"+ {self.name}" + " " * (10 - len(self.name)) + f"{self.command}"
-    
-    def dict(self) -> dict:
-        return { "name": self.name, "command": self.command }
+
+class UnnamedPreset:
+    """Represents an unnamed conversion preset used automatically"""
+    from_type: str = ""
+    to_type: str = ""
+    command: str = ""
 
 
 def get_python_version() -> str:
@@ -43,20 +44,23 @@ def get_platform_version() -> str:
     return f"{platform.platform(True, True)} {platform.machine()}"
 
 
-def check_interactivity():
+def check_interactivity() -> None:
     """Checks whether the console is a tty, and print a warning if not"""
     if not (hasattr(sys.stdout, "isatty") or sys.stdout.isatty()):
         console.print(" • warning: mpeg-convert is not being run in a tty")
         console.print(" • warning: some features may not work correctly")
 
 
-def enable_debug() -> None:
-    """Enables debug mode globally and prints debug headers"""
-    debug.quiet = False
-    debug.log(f"mpeg-convert {__version__}")
-    debug.log(get_python_version().lower())
-    debug.log(get_platform_version().lower())
-    return
+def open_file(filepath: str) -> None:
+    """Opens a file with the default application on different platforms. Taken
+    from https://stackoverflow.com/questions/434597/open-document-with-default-
+    os-application-in-python-both-in-windows-and-mac-os#435669"""
+    if platform.system() == 'Darwin':       # macOS
+        subprocess.call(('open', filepath))
+    elif platform.system() == 'Windows':    # Windows
+        os.startfile(filepath) # type: ignore
+    else:                                   # Linux variants
+        subprocess.call(('xdg-open', filepath))
 
 
 def expand_paths(path: str) -> str:
@@ -65,47 +69,67 @@ def expand_paths(path: str) -> str:
         os.path.join(
             os.environ["PWD"],
             os.path.expanduser(path)
-        )
-    )
+    ))
 
 
-@catch((JSONDecodeError, KeyError, OSError), "an error occurred when reading presets")
-def load_presets() -> List[Preset]:
-    """Loads user-defined preset from a json file into a list"""
-    ret = []
-    debug.log(f"reading user-defined presets:")
-    with open(expand_paths(ROOT_PATH + "preset.json"), "r") as preset:
-        presets = json.load(preset)
-        for preset in presets:
-            current_preset = Preset()
-            current_preset.name = preset["name"]
-            current_preset.command = preset["command"]
-            ret.append(current_preset)
-            debug.log(f"{current_preset}")
-    return ret
+@catch((YAMLError, KeyError, OSError), "an error occurred when reading presets")
+def load_config() -> Tuple[List[NamedPreset], List[UnnamedPreset]]:
+    """Loads user-defined config from a yaml file into a list"""
+    with open(expand_paths(ROOT_PATH + "config.yml"), "r") as f:
+        config = yaml.safe_load(f)
+        named = []
+        unnamed = []
+        if "named" in config:
+            for item in config["named"]:
+                temp = NamedPreset()
+                temp.name = item["name"]
+                temp.command = item["command"]
+                named.append(temp)
+        if "unnamed" in config:
+            for item in config["unnamed"]:
+                temp = UnnamedPreset()
+                temp.from_type = item["from-type"]
+                temp.to_type = item["to-type"]
+                temp.command = item["command"]
+                unnamed.append(temp)
+        return (named, unnamed)
 
 
-@catch(OSError, "an error occured when writing presets")
-def write_presets(presets: List[Preset]) -> None:
-    """Write a list of preset into a json file"""
-    dict_presets = [preset.dict() for preset in presets]
-    debug.log("opening presets.json to write presets to disk")
-    with open(expand_paths(ROOT_PATH + "preset.json"), "w") as f:
-        json.dump(dict_presets, f)
+@catch(FileNotFoundError, "ffmpeg is not installed")
+def check_ffmpeg() -> None:
+    """Checks whether FFmpeg is installed and on the system path"""
+    try:
+        ffprobe_instance = FFmpeg(executable="ffprobe").option("h")
+        ffmpeg_instance = FFmpeg(executable="ffmpeg").option("h")
+        ffprobe_instance.execute()
+        ffmpeg_instance.execute()
+    except FFmpegError:
+        raise ForceExit("ffmpeg is not installed or is corrupted", code=1)
     return
+
+
+def readable_size(path: str, decimal_points=2) -> str:
+    """Calculates the size of a particular file on disk and returns the
+    size in a human-readable fashion
+    """
+    size: float = os.path.getsize(path)
+    for i in ["bytes", "kb", "mb", "gb", "tb", "pb"]:
+        if size < 1024.0:
+            return f"{size:.{decimal_points}f} {i}"
+        size /= 1024.0
+    return f"{size:.{decimal_points}f} pb"
 
 
 @catch(OSError, "an error occurred when initializing files and directories")
 def initialize(arguments: Dict[str, Any]) -> None:
     """Checks terminal integrity and enables debug logging if applicable"""
     check_interactivity()
-    if arguments["debug"]:
-        enable_debug()
+    check_ffmpeg()
     if not os.path.exists(expand_paths(ROOT_PATH)):
         os.makedirs(expand_paths(ROOT_PATH))
-    if not os.path.exists(expand_paths(ROOT_PATH + "preset.json")):
-        with open(expand_paths(MODULE_PATH + "assets/default.json")) as f:
-            default = json.load(f)
-        with open(expand_paths(ROOT_PATH + "preset.json"), "w") as f:
-            json.dump(default, f)
+    if not os.path.exists(expand_paths(ROOT_PATH + "config.yml")):
+        with open(expand_paths(MODULE_PATH + "assets/default.yml")) as f:
+            default = f.read()
+        with open(expand_paths(ROOT_PATH + "config.yml"), "w") as f:
+            f.write(default)
     return

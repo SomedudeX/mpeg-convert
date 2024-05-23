@@ -28,11 +28,7 @@ import inspect
 from typing import Any, Dict, List
 
 from . import utils
-
-from .core import help
-from .core import version
-from .core import console
-from .core import interactive
+from . import module
 
 from .term import move_caret_newline
 from .arguments import parse_arguments
@@ -41,23 +37,23 @@ from .exceptions import ArgumentsError, ForceExit, exception_name
 
 def start_module(arguments: Dict[Any, Any]) -> int:
     """Starts the main program by initializing the correct module"""
-    base_module: str = arguments["module"][0]
-    if base_module == "":
-        exit_code = help.run_module(arguments)
-        return exit_code
-    if base_module == "help":
-        exit_code = help.run_module(arguments)
-        return exit_code
-    if base_module == "version":
-        exit_code = version.run_module(arguments)
-        return exit_code
-    if base_module == "console":
-        exit_code = console.run_module(arguments)
-        return exit_code
-    if base_module == "interactive":
-        exit_code = interactive.run_module(arguments)
-        return exit_code
-    raise ArgumentsError(f"{base_module} is not a valid command", code=2)
+    if len(arguments["module"]) == 1:
+        arg_help = (arguments["help"])
+        arg_version = (arguments["version"] and not arguments["help"])
+        arg_config = (arguments["config"] and not arg_help and not arg_version)
+        if arg_help:
+            module.help()
+            return 0
+        if arg_version:
+            module.version()
+            return 0
+        if arg_config:
+            module.config()
+            return 0
+    if len(arguments["module"]) == 2:
+        module.convert(arguments)
+        return 0
+    raise ArgumentsError("use '--help' for usage info", code=127)
 
 
 def main(argv: List[str]) -> int:
@@ -77,12 +73,6 @@ def main(argv: List[str]) -> int:
         return e.exit_code
     except ForceExit as e:
         move_caret_newline()
-        lineno = e.original_thrower.lineno
-        function = e.original_thrower.function
-        filename = os.path.basename(e.original_thrower.filename)
-        utils.debug.log(f"an exception has been encountered")
-        utils.debug.log(f"the exception has been raised by {function} at {filename}:{lineno}")
-        utils.debug.log(f"{exception_name(e.original)}: {str(e.original).lower()}")
         utils.console.print(f" • mpeg-convert has been interrupted because {e.reason}", style="red")
         utils.console.print(f" • mpeg-convert terminating with exit code {e.exit_code}", style="red")
         return e.exit_code
@@ -91,12 +81,11 @@ def main(argv: List[str]) -> int:
         lineno = inspect.trace()[-1].lineno
         function = inspect.trace()[-1].function
         filename = os.path.basename(inspect.trace()[-1].filename)
-        utils.debug.log(f"an exception has been encountered")
-        utils.debug.log(f"the exception has been raised by {function} at {filename}:{lineno}")
-        utils.debug.log(f"{exception_name(e)}: {str(e).lower()}")
         utils.console.print(f" • mpeg-convert received an unknown {exception_name(e)}", style="red")
+        utils.console.print(f"    - raised by function {function} at {filename}:{lineno}", style="red")
+        utils.console.print(f"    - exception cause: {str(e).lower()}", style="red")
         utils.console.print(f" • mpeg-convert terminating with exit code 255", style="red")
-        return -1
+        return 255
 
 
 if __name__ == "__main__":

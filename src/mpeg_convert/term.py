@@ -13,43 +13,15 @@ from rich.console import Console
 class FunctionInfo:
     """The info of a function (filename and lineno)"""
     lineno = -1
-    function = ""
-    filename = ""
+    filename = "unknown"
+    function = "unknown function"
 
     def __repr__(self):
         return f"{self.filename}:{self.lineno}"
 
     def __len__(self):
         return len(self.__repr__())
-
-
-class Logger(Console):
-    """A singleton class that logs to the console"""
-
-    def __init__(self, *args, **kwargs) -> None:
-        """Initializes an instance of Logger"""
-        super().__init__(*args, **kwargs)
-        self.style = "bright_black"
-        self.quiet = True  # Set quiet to true initially
-        return
-
-    def enable(self) -> None:
-        """Enables debug logging emit"""
-        self.quiet = False
-        return
-
-    def log(
-        self,
-        message: str,
-        **kwargs
-    ) -> None:
-        """Logs a message to the console with filename and lineno info"""
-        if not self.quiet:
-            caller = get_caller_info()
-            size = self.size.width
-            processed_message = f"{message}{" " * (size - len(message) - len(caller))}{caller}"
-            self.print(f"{processed_message}", **kwargs)
-
+    
 
 def move_caret_newline() -> None:
     """Prints a newline if the caret is not already on a blank line"""
@@ -89,8 +61,8 @@ def supports_color() -> bool:
         """
         try:
             import winreg
-            reg_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Console")
-            reg_key_value, _ = winreg.QueryValueEx(reg_key, "VirtualTerminalLevel")
+            reg_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Console") # type: ignore
+            reg_key_value, _ = winreg.QueryValueEx(reg_key, "VirtualTerminalLevel") # type: ignore
         except ImportError:
             return False
         except FileNotFoundError:
@@ -113,8 +85,8 @@ def get_caret_position() -> Tuple[int, int]:
     Taken from https://stackoverflow.com/questions/35526014/
     how-can-i-get-the-cursors-position-in-an-ansi-terminal?noredirect=1&lq=1
     """
-    if not supports_color:  # Default to printing a newline if the terminal
-        print()             # does not support ANSI escape codes
+    if not supports_color():  # Default to printing a newline if the terminal
+        print()               # does not support ANSI escape codes
         return (-1, -1)
     if sys.platform == "win32":
         OldStdinMode = ctypes.wintypes.DWORD()
