@@ -1,114 +1,70 @@
-## MPEG-Convert
-
-A highly customizable<sup>[1](#Customizing)</sup> terminal-based [Python](https://www.python.org/downloads/) wrapper for [FFmpeg](https://ffmpeg.org/download.html) that provides a humanized approach to conversions between different multimedia formats. 
-
-FFmpeg is a powerful multimedia tool, but its many options<sup>[2](https://ffmpeg.org/ffmpeg.html)</sup> can be especially overwhelming for new users. This wrapper aims to simplify the process of working with the FFmpeg engine to convert between different video/audio formats for the folks who doesn't want to memorize twenty options to use FFmpeg. This program is not, however, a complete replacement for FFmpeg in any way. For that purpose, you should look look into other software such as [Handbrake](https://handbrake.fr/) or [DaVinci Resolve](https://www.blackmagicdesign.com/products/davinciresolve). 
-
-This project is now hosted on [PyPi](https://pypi.org/project/mpeg-convert), however legacy releases can still be found on the right. 
-
-## Features
-
-* **Simplified commands**: MPEG-Convert provides a straightforward interface for commonly used FFmpeg functionalities, making it easy for both beginners and experienced users to perform tasks such as codec conversion, audio extraction, video compression, and much more.
-
-* **Configurability**: While MPEG-Convert is designed for simplicity, it also provides room for customization<sup>[1](#Customizing)</sup>. You can tweak advanced settings by specifying additional FFmpeg options in the script or during script execution, ensuring flexibility for more sophisticated multimedia processing needs.
-
-![demo](https://github.com/SomedudeX/MPEG-Convert/assets/101906945/d69c68b0-4122-4ebc-a6fb-3de50448dcd0)
+A customizable<sup>[1](#Configuring)</sup> tool that provides some quality-of-life additions for [FFmpeg](https://ffmpeg.org). This tool adds features such as pretty printing, progress bars, and command presets.
 
 ## Installation 
 
-Make sure you have Python 3 and FFmpeg installed. 
+Ensure [Python](https://www.python.org/downloads/) and [FFmpeg](https://ffmpeg.org/download.html) is installed. Then, use the [Python Packaging Index](https://pypi.org/) (PyPI) to install `mpeg-convert` and its dependencies. You may need to use `pip3` instead of `pip` in certain environments: 
 
 ```bash
-pip install --upgrade mpeg-convert
-mpeg-convert --help
+$ pip install --upgrade mpeg-convert
+$ mpeg-convert --help
 ```
 
-## Customizing
+This tool does not aim to replace FFmpeg or any other conversion software such as [Handbrake](https://handbrake.fr/). Rather, it tries to improve the user experience and productivity when using FFmpeg. See [usages](#Usage) and [configuring](#Configuring) for more details. 
 
-#### Interactive
+## Usage
 
-You can customize the interactive mode of the script by changing the questions variable `VIDEO_OPTIONS` and `AUDIO_OPTIONS` in mpeg-convert to your liking. This can be achieved using the `--customize` option, which will open the correct file for you in your default text editor.
+The most basic way to use `mpeg-convert` is to specify an input file path and an output file path. `mpeg-convert` will then call FFmpeg to initiate the conversion, and display a bar indicating the progress of the conversion. No extra FFmpeg options will be added when transcoding the file. This is demonstrated with the command and screenshot below: 
 
-The two variables represents the list of questions asked during video options and audio options sections of the script respectively. The properties of each question is represented as a dictionary in python, and will be shown to the user in order. The dictionaries' format is shown below:
-
-```py
-[
-    {
-        "type": <str>,
-        "title": <str>,
-        "option": <str>,
-        "default": <int>,
-        "choices": <list[tuple]>
-    }
-]
+```bash
+$ mpeg-convert sample.mp4 output.mov
 ```
 
- * **`type`**: The type of the question
+<img width="840" alt="Screenshot 2024-05-22 at 17 47 27" src="https://github.com/SomedudeX/mpeg-convert/assets/101906945/4cde6fe7-e079-47f0-b82b-f07528fdcffd">
 
-   * Valid values:
-     + **`choice`**: Multiple choice
-     + **`input`**: Input field
+For conversions where you may need or want to tweak extra options (e.g. frame rate, constrast, or bitrate changes), you can add a named or unnamed preset by following the [configuration guide](#Configuring). After you have saved your custom preset to the config file, you can use it by using the `--preset` flag for named presets, or convert between matching file containers/extensions for unnamed presets. This will use the extra custom FFmpeg options you specified in the preset when transcoding. This is demonstrated below:
 
- * **`title`**: The text shown to the console when displaying the question during the execution of the program
-
- * **`option`**: The corresponding option in FFmpeg. This option will be inserted to the list of arguments passed to FFmpeg
-
- * **`default`**: The default option that is used when the input field is empty. Has no effect if question type is `input`.
-
- * **`choices`**: A list of choices that will be shown to the console during the execution of the program. The choices will be in tuples where the first index will be what is displayed, and the second index is what is actually entered as a value for the particular FFmpeg option. Has no effect if question type is `input`.
-
-An example of a custom question is below: 
-
-```py
-[
-    {
-        "type": "choice",
-        "title": "Select an encoding preset",
-        "option": "-preset",
-        "default": 3,
-        "choices": [
-            ("Faster/lower quality", "veryfast"),
-            ("Normal/medium quality", "medium"),
-            ("Slower/best quality", "veryslow")
-        ]
-    }
-]
+```bash
+$ mpeg-convert sample.mp4 output.mov --preset="custom-1080p"
 ```
 
-<br></br>
+<img width="841" alt="Screenshot 2024-05-22 at 18 00 35" src="https://github.com/SomedudeX/mpeg-convert/assets/101906945/9b9c4b54-9465-4dfa-94fc-6ad355f13009">
 
-#### Presets
+As of writing, presets are the only method to use FFmpeg options while converting with `mpeg-convert`. Additionally, multiple inputs and other advanced FFmpeg features are not supported by `mpeg-convert`. Such feature is unlikely to be added to `mpeg-convert`, since it is written as a complement, not replacement, to FFmpeg; consider directly using FFmpeg or other UI based programs such as Handbrake for such tasks. 
 
-Presets are different predetermined flags and options of FFmpeg options that mpeg-convert uses when you specify the name of the preset. Presets can be activated by specifying the name of the preset as a positional flag. You can customize them by modifying the `PRESETS` variable also located in `customization.py`. 
+## Configuring
 
-The preset's format is shown below: 
-```py
-{
-    "name": {
-        "option": <str>,
-        "option": <str>,
-        "option": <str>,
-        ...
-    }
-}
+**Presets** allows you to save FFmpeg commands for repeated use, eliminating the need to enter long and complex flag/options each time you need to convert or edit media files. You can add presets to `mpeg-convert` by editing the YAML configuration file. To open the config, use the `--config` flag as demonstrated below:
+
+```bash
+$ mpeg-convert --config
 ```
 
- * **`name`**: The name that is used to activate the preset
+There are two types of presets you can specify in the config file: named presets and unnamed presets.
 
- * **`option`**: A command-line option to be inserted to the list of arguments passed to FFmpeg. The option should be stripped of the dash (-) symbol at the front. If the FFmpeg option does not take any value, put `None` after the colon. There can be more than one option in each preset. 
- 
-An example of a custom preset is below:
+ * **Named presets** are invoked when you explicitly use the `--preset` flag. You can add a named preset under the `named` key. Each named preset must have a unique name and a string of ffmpeg options. To activate a named preset, specify its name with the `--preset` flag, and `mpeg-convert` will use the options when converting. An example of a named preset is below:
 
-```py
-{
-    "flac-audio": {
-        "vn": None,
-        "ar": "96000",
-        "codec:a": "flac",
-        "sample_fmt": "s24",
-    }
-}
+```yml
+named:
+- name: "custom-1080p"
+  options: "-vf scale=1920x1080 -r 24"
 ```
+
+ * **Unnamed presets** are applied automatically to conversions of specific file types and extensions. They are useful when you want conversions between one container type and another container type to always use certain FFmpeg options. Each unnamed preset must have an array of file extensions in `from-type` and `to-type`, and a string of FFmpeg options; and voilà, whenever you convert between any of the file extensions in `from-type` to any of the extensions in `to-type`, `mpeg-convert` will automatically use the FFmpeg options specified in the unnamed preset. An example of an unnamed preset is below:
+
+```yml
+unnamed:
+- from-type: ["mp4", "mov"]
+  to-type: ["gif"]
+  command: "-vf scale=1280x720 -r 8"
+```
+
+If you have an unnamed preset specified for a file type you are converting to/from, but you would like to temporarily disable it, you can use the `--plain` flag. This will remove any FFmpeg options for the current conversion.
+
+When searching for matching presets, `mpeg-convert` will check using the following order:
+ * Check if `--plain` flag is specified. If not...
+ * Check if `--preset` flag is specified. If not...
+ * Check if there is a matching unnamed preset. If not...
+ * Initiate the conversion without any FFmpeg commands
 
 ## Troubleshooting
 
@@ -121,12 +77,8 @@ An example of a custom preset is below:
     - `ALAC` with `.m4a`
   + Is the encoder installed on your system?
 
-## Resources
+## Notes
 
- - [Demo](https://github.com/SomedudeX/mpeg-convert/raw/main/demo.mp4)
- - [License](https://raw.githubusercontent.com/SomedudeX/mpeg-convert/main/LICENSE)
- - [Project](https://pypi.org/project/mpeg-convert/)
-
-Contributions are welcome! If you encounter any problems or find any bugs, please feel free to open an issue. In the meantime, happy converting! 
+This project has undergone substantial changes in `v0.2.0`. Click [here](https://github.com/SomedudeX/mpeg-convert/blob/15f4026633c5da667e6283cdeb78d82b29cd1b3d/README.md) if you are looking for documentation before `v0.2.0`
 
 --
