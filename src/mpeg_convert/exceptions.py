@@ -2,11 +2,11 @@ import re
 import functools
 
 from typing import Callable, TypeVar
-from typing import Tuple, Type, TypeAlias, Union
+from typing import Tuple, Type, Union
 
 # (For type-checkers) To spell out an exception type that could be catched in the try-except block
-ExceptionType: TypeAlias = Type[BaseException]
-CatchableExceptions: TypeAlias = Union[Tuple[ExceptionType, ...], ExceptionType]
+ExceptionType = Type[BaseException]
+CatchableExceptions = Union[Tuple[ExceptionType, ...], ExceptionType]
 
 
 class ArgumentsError(Exception):
