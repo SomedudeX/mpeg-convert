@@ -4,7 +4,6 @@ import sys
 import inspect
 
 import ctypes
-import termios
 
 from typing import Tuple
 
@@ -87,6 +86,8 @@ def get_caret_position() -> Tuple[int, int]:
     if not supports_color():  # Default to printing a newline if the terminal
         print()               # does not support ANSI escape codes
         return (-1, -1)
+    if not sys.platform == "win32":
+        import termios
     if sys.platform == "win32":
         OldStdinMode = ctypes.wintypes.DWORD() # type: ignore
         OldStdoutMode = ctypes.wintypes.DWORD() # type: ignore
