@@ -7,6 +7,7 @@ required positionals:
 available options:
   -h, --help        displays this help message
   -v, --version     displays the version and platform info
+  -p, --plain       do not apply any presets when converting
       --config      opens the config file that mpeg-convert uses to
                     retrieve preset info and command for conversions
       --preset      specifies a named preset to use when converting

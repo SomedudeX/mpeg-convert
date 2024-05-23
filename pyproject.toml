@@ -5,13 +5,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mpeg-convert"
-version = "0.1.0"
+version = "0.2.0"
 requires-python = ">=3.9"
-description = "A python tool based on ffmpeg that makes converting between different formats/codecs a whole lot easier for the inexperienced "
+description = "A python wrapper that enhances the user experience and productivity when using ffmpeg"
 authors = [{ name = "Zichen", email = "zichenziv@icloud.com" }]
 readme = "README.md"
 license = { file = "LICENSE" }
-keywords = ["ffmpeg", "convert", "media", "mp4", "mp3"]
+keywords = ["transcode", "ffmpeg", "convert", "media", "mp4", "mp3"]
 
 classifiers = [
     "Development Status :: 5 - Production/Stable",

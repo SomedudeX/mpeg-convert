@@ -24,14 +24,14 @@ MODULE_PATH = os.path.dirname(__file__) + "/"
 class NamedPreset:
     """Represents a named conversion preset"""
     name: str = ""
-    command: str = ""
+    options: str = ""
 
 
 class UnnamedPreset:
     """Represents an unnamed conversion preset used automatically"""
-    from_type: str = ""
-    to_type: str = ""
-    command: str = ""
+    from_type: List[str] = []
+    to_type: List[str] = []
+    options: str = ""
 
 
 def get_python_version() -> str:
@@ -83,14 +83,14 @@ def load_config() -> Tuple[List[NamedPreset], List[UnnamedPreset]]:
             for item in config["named"]:
                 temp = NamedPreset()
                 temp.name = item["name"]
-                temp.command = item["command"]
+                temp.options = item["options"]
                 named.append(temp)
         if "unnamed" in config:
             for item in config["unnamed"]:
                 temp = UnnamedPreset()
                 temp.from_type = item["from-type"]
                 temp.to_type = item["to-type"]
-                temp.command = item["command"]
+                temp.options = item["options"]
                 unnamed.append(temp)
         return (named, unnamed)
 
@@ -112,6 +112,8 @@ def readable_size(path: str, decimal_points=2) -> str:
     """Calculates the size of a particular file on disk and returns the
     size in a human-readable fashion
     """
+    if not os.path.exists(path):
+        return "0 bytes"
     size: float = os.path.getsize(path)
     for i in ["bytes", "kb", "mb", "gb", "tb", "pb"]:
         if size < 1024.0:
