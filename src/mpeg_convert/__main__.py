@@ -25,7 +25,7 @@ import os
 import sys
 import inspect
 
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from . import utils
 from . import module
@@ -56,9 +56,9 @@ def start_module(arguments: Dict[Any, Any]) -> int:
     raise ArgumentsError("use '--help' for usage info", code=127)
 
 
-def main(argv: List[str]) -> int:
+def main() -> int:
     try:
-        arguments = parse_arguments(argv)
+        arguments = parse_arguments(sys.argv)
         utils.initialize(arguments)
         return start_module(arguments)
     except KeyboardInterrupt:
@@ -89,4 +89,4 @@ def main(argv: List[str]) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    sys.exit(main())

@@ -19,7 +19,7 @@ The most basic way to use `mpeg-convert` is to specify an input file path and an
 $ mpeg-convert sample.mp4 output.mov
 ```
 
-<img width="840" alt="Screenshot 2024-05-22 at 17 47 27" src="https://github.com/SomedudeX/mpeg-convert/assets/101906945/4cde6fe7-e079-47f0-b82b-f07528fdcffd">
+![no_preset_nobg](https://github.com/SomedudeX/mpeg-convert/assets/101906945/f990118f-0f3c-4f0d-aabf-5afa65efdb37)
 
 For conversions where you may need or want to tweak extra options (e.g. frame rate, constrast, or bitrate changes), you can add a named or unnamed preset by following the [configuration guide](#Configuring). After you have saved your custom preset to the config file, you can use it by using the `--preset` flag for named presets, or convert between matching file containers/extensions for unnamed presets. This will use the extra custom FFmpeg options you specified in the preset when transcoding. This is demonstrated below:
 
@@ -27,7 +27,7 @@ For conversions where you may need or want to tweak extra options (e.g. frame ra
 $ mpeg-convert sample.mp4 output.mov --preset="custom-1080p"
 ```
 
-<img width="841" alt="Screenshot 2024-05-22 at 18 00 35" src="https://github.com/SomedudeX/mpeg-convert/assets/101906945/9b9c4b54-9465-4dfa-94fc-6ad355f13009">
+![yes_preset_nobg](https://github.com/SomedudeX/mpeg-convert/assets/101906945/44503c85-5bed-441a-9f6d-c241820b8c09)
 
 As of writing, presets are the only method to use FFmpeg options while converting with `mpeg-convert`. Additionally, multiple inputs and other advanced FFmpeg features are not supported by `mpeg-convert`. Such feature is unlikely to be added to `mpeg-convert`, since it is written as a complement, not replacement, to FFmpeg; consider directly using FFmpeg or other UI based programs such as Handbrake for such tasks. 
 

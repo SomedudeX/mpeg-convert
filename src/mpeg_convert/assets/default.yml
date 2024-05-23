@@ -2,10 +2,14 @@
 # To learn more, head to https://github.com/SomedudeX/mpeg-convert/blob/main/README.md#configuring
 
 named:
-- name: "default"
-  options: "-c:v copy -c:a copy"
+- name: "video-720p"
+  options: "-vf scale=1280x720 -c:v copy -c:a copy"
+- name: "video-1080p"
+  options: "-vf scale=1920x1080 -c:v copy -c:a copy"
+- name: "video-1440p"
+  options: "-vf scale=2560x1440 -c:v copy -c:a copy"
 
 unnamed:
-- from-type: ["aac"]
-  to-type: ["mp3"]
-  options: "-b:a 256k -ar 44100"
+- from-type: ["mp4"]
+  to-type: ["gif"]
+  options: "-vf scale=1920x1080 -r 8"
