@@ -1,3 +1,7 @@
+![PyPI - Version](https://img.shields.io/pypi/v/mpeg-convert?style=for-the-badge)
+ ![PyPI - Wheel](https://img.shields.io/pypi/wheel/mpeg-convert?style=for-the-badge) ![GitHub License](https://img.shields.io/github/license/SomedudeX/mpeg-convert?style=for-the-badge)
+
+
 A customizable<sup>[1](#Configuring)</sup> tool that provides some quality-of-life additions for [FFmpeg](https://ffmpeg.org) such as pretty printing, progress bars, and command presets. This tool does not aim to replace FFmpeg or other transcoding software such as [Handbrake](https://handbrake.fr/). Rather, it tries to provide an easier to use interface to FFmpeg for simple operations. 
 
 ## Installation 
