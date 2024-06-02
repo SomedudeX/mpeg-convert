@@ -84,8 +84,7 @@ def get_caret_position() -> Tuple[int, int]:
     how-can-i-get-the-cursors-position-in-an-ansi-terminal?noredirect=1&lq=1
     """
     if not supports_color():  # Default to printing a newline if the terminal
-        print()               # does not support ANSI escape codes
-        return (-1, -1)
+        return (100, 100)       # does not support ANSI escape codes
     if not sys.platform == "win32":
         import termios
     if sys.platform == "win32":
