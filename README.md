@@ -59,7 +59,7 @@ named:
 unnamed:
 - from-type: ["mp4", "mov"]
   to-type: ["gif"]
-  command: "-vf scale=1280x720 -r 8"
+  options: "-vf scale=1280x720 -r 8"
 ```
 
 If you have an unnamed preset specified for a file type you are converting to/from, but you would like to temporarily disable it, you can use the `--plain` flag. This will remove any FFmpeg options for the current conversion.
