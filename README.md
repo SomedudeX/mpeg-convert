@@ -2,7 +2,7 @@
  ![PyPI - Wheel](https://img.shields.io/pypi/wheel/mpeg-convert?style=for-the-badge) ![GitHub License](https://img.shields.io/github/license/SomedudeX/mpeg-convert?style=for-the-badge)
 
 
-A customizable<sup>[1](#Configuring)</sup> tool that provides some quality-of-life additions for [FFmpeg](https://ffmpeg.org) such as pretty printing, progress bars, and command presets. This tool does not aim to replace FFmpeg or other transcoding software such as [Handbrake](https://handbrake.fr/). Rather, it tries to provide an easier to use interface to FFmpeg for simple operations. 
+A customizable<sup>[1](#Configuring)</sup> tool that provides some quality-of-life additions for [FFmpeg](https://ffmpeg.org) such as pretty printing, progress bars, and command presets. This tool does not aim to replace FFmpeg or other transcoding software such as [Handbrake](https://handbrake.fr/). Rather, it tries to provide a shortcut to FFMPEG for simple operations. 
 
 ## Installation 
 
@@ -37,7 +37,7 @@ As of writing, presets are the only method to use FFmpeg options while convertin
 
 ## Configuring
 
-**Presets** allows you to save FFmpeg commands for repeated use, eliminating the need to enter long and complex flag/options each time you need to convert or edit media files. You can add presets to `mpeg-convert` by editing the YAML configuration file. To open the config, use the `--config` flag as demonstrated below:
+**Presets** allows you to save FFmpeg commands for repeated use, eliminating the need to enter long and complex flag/options each time you need to convert or edit media files. You can use [FFmpeg Commander](https://alfg.dev/ffmpeg-commander/) to generate the options, and then you can add the options presets by editing the YAML configuration file. To open the config, use the `--config` flag as demonstrated below:
 
 ```bash
 $ mpeg-convert --config
@@ -50,6 +50,8 @@ There are two types of presets you can specify in the config file: named presets
 ```yml
 named:
 - name: "custom-1080p"
+  # This will execute the equivalent of `ffmpeg -i input.mp4 -vf scale=1920x1080 -r 24 output.mp4`
+  # whenever you specify the `--preset="custom-1080p"` flag when converting. 
   options: "-vf scale=1920x1080 -r 24"
 ```
 
@@ -59,6 +61,8 @@ named:
 unnamed:
 - from-type: ["mp4", "mov"]
   to-type: ["gif"]
+  # This will execute the equivalent of `ffmpeg -i input.mp4 -vf scale=1280x720 -r 8 output.gif`
+  # whenever your specified input file is an mp4/mov and your output is a gif
   options: "-vf scale=1280x720 -r 8"
 ```
 
@@ -80,6 +84,8 @@ When searching for matching presets, `mpeg-convert` will check using the followi
     - `HEVC` with `.mp4`
     - `ALAC` with `.m4a`
   + Is the encoder installed on your system?
+ 
+Note that `mpeg-convert` will not check the integrity of the underlying FFmpeg command while executing them. If you are getting an error, make sure to verify by directly running with FFmpeg. 
 
 ## Notes
 
